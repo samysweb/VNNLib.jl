@@ -1,0 +1,9 @@
+name = "VNNLib"
+uuid = "286915b0-5841-4eea-9013-d818f395ad8c"
+authors = ["Samuel Teuber <teuber@kit.edu>"]
+version = "0.1.0"
+
+[deps]
+MLStyle = "d8e11817-5142-5d16-987a-aa16d5891078"
+SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
+Tokenize = "0796e94c-ce3b-5d07-9a54-7f471281c624"
