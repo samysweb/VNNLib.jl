@@ -8,5 +8,5 @@ module Simplifier
     include("TermInterface.jl")
     include("SymbolicUtils.jl")
 
-    export prepare_linearization
+    export prepare_linearization, to_dnf
 end

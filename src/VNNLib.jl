@@ -16,6 +16,10 @@ include("Linearization/Main.jl")
 
 using .Linearization
 
+include("Iterator/Main.jl")
+
+using .Iterator
+
 function default_labeler(name)
     parts = split(name,"_")
     if length(parts) == 2
@@ -36,7 +40,7 @@ function get_ast(filename :: String,variable_labeler=default_labeler)
     return process_parser_output(parser_result,variable_labeler)
 end
 
-export get_ast, ast_to_lp
+export get_ast, iterate
 
 
 

@@ -4,7 +4,9 @@ Base.Iterators.approx_iter_type(::Type{Tokenize.Lexers.Lexer{IO_t, Tokens.Token}
 
 mutable struct TokenManager{IO_t <: IO}
 	tokens :: Iterators.Stateful{Tokenize.Lexers.Lexer{IO_t, Tokens.Token},Tuple{Tokens.Token,Bool}}
-	TokenManager(tokens::Tokenize.Lexers.Lexer{IO_t, Tokens.Token}) where IO_t <: IO = new{IO_t}(Iterators.Stateful(tokens))
+	function TokenManager(tokens::Tokenize.Lexers.Lexer{IO_t, Tokens.Token}) where IO_t <: IO 
+        return new{IO_t}(Iterators.Stateful(tokens))
+    end
 end
 
 struct DeclaredVariable
