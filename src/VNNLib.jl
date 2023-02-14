@@ -20,6 +20,10 @@ include("Iterator/Main.jl")
 
 using .Iterator
 
+include("NNLoader/Main.jl")
+
+using .NNLoader
+
 function default_labeler(name)
     parts = split(name,"_")
     if length(parts) == 2
