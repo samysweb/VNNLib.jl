@@ -1,5 +1,4 @@
 function ast_to_lp(conjunction :: Formula)
-    conjunction = prepare_linearization(conjunction)
     num_vars = MapReduce(((x,y)->max(x,y)),0,conjunction) do x
         return x isa Variable ? x.index[] : (x isa BoundConstraint ? abs(x.var_index) : 0)
     end

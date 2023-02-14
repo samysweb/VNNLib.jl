@@ -11,10 +11,18 @@ function iterate(ast :: ASTNode)
     linearized = prepare_linearization(ast)
     # Adjust formula structure
     dnf = to_dnf(linearized)
-    if dnf.head == And && dnf.args[1] isa CompositeFormula && dnf.args[1].head == Or
+    if dnf.head == And && length(dnf.args)==1
         dnf = dnf.args[1]
     end
-    return ast_to_lp(dnf.args[1]), (2,dnf)
+    if dnf.head == Or
+        return ast_to_lp(dnf.args[1]), (2,dnf)
+    else
+        return ast_to_lp(dnf), nothing
+    end
+end
+
+function iterate(ast :: ASTNode, state :: Nothing)
+    return nothing
 end
 
 function iterate(ast :: ASTNode, state :: Tuple{Int64,ASTNode})

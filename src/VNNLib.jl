@@ -40,7 +40,7 @@ function get_ast(filename :: String,variable_labeler=default_labeler)
     return process_parser_output(parser_result,variable_labeler)
 end
 
-export get_ast, iterate
+export get_ast, iterate, AST, ast_to_lp
 
 
 

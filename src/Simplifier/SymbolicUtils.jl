@@ -144,7 +144,7 @@ function dnf_simplifier()
 			If(x->x.head==Or, Chain([
 				@acrule ((or(or(~~x), ~~y)) => (or_construction([~~x; ~~y])))
 			]))
-			If(x->x.head==Or, Chain([
+			If(x->x.head==And, Chain([
 				@acrule ((and(and(~~x), ~~y)) => (and_construction([~~x; ~~y])))
 				@acrule ((and(or(~~x), ~~y)) => (distribute_or(~~x, ~~y)))
 			]))
