@@ -36,10 +36,13 @@ MLStyle.pattern_uncall(a::Comparison, _, _, _, _) = literal(a)
     right :: Term
 end
 
-@as_record struct LinearConstraint <: Atom
+@as_record struct BoundConstraint <: Atom
     head :: Comparison
-    term :: Vector{Rational{BigInt}}
-    constant :: Rational{BigInt}
+    # abs(var_index) is index of the Variable v
+    # If index is positive, then v <= bound
+    # If index is negative, then -v <= bound
+    var_index :: Int64
+    bound :: Rational{BigInt}
 end
 
 @enum Arithmetic begin
@@ -74,12 +77,3 @@ end
 @as_record struct Constant <: Term
     value :: Rational{BigInt}
 end
-
-
-Conjunction = CompositeFormula{And, Atom}
-Disjunction = CompositeFormula{Or, Atom}
-ConjunctiveNF = CompositeFormula{And, Disjunction}
-DisjunctiveNF = CompositeFormula{Or, Conjunction}
-
-LinearConjunction = CompositeFormula{And, LinearConstraint}
-LinearDisjunctiveNF = CompositeFormula{Or, LinearConjunction}

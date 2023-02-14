@@ -4,6 +4,7 @@ import SymbolicUtils.Chain
 import SymbolicUtils.Fixpoint
 import SymbolicUtils.If
 import SymbolicUtils.Postwalk
+import SymbolicUtils.Prewalk
 import SymbolicUtils.PassThrough
 
 # Many of the rules are based on the rules provided by SymbolicUtils.simplify with adjustments for our AST types.
@@ -116,7 +117,7 @@ function number_simplifier()
 				 If( x-> istree(x) && (operation(x) == min || operation(x) == max),
 				 	Chain(MINMAX_RULES))]
 
-	return Chain(rule_tree)
+	return Fixpoint(Chain(rule_tree))
 end
 
 function composite_formula_simplifier()
@@ -129,13 +130,34 @@ function composite_formula_simplifier()
 				@acrule ((or(~x::_isfalse, ~~y)) => (or_construction(~~y)))
 				@rule   ((not(~x::_istrue)) => (FalseAtom()))
 				@rule   ((not(~x::_isfalse)) => (TrueAtom()))
-				@rule   (not(implies(~x,~y)) => (and_construction([~x, not(~y)])))
-				@acrule ((and(and(~~x), ~~y)) => (and_construction([~~x; ~~y])))
-				@acrule ((or(or(~~x), ~~y)) => (or_construction([~~x; ~~y])))
+				@rule   (not(implies(~x,~y)) => (and_construction(Formula[~x, not(~y)])))
+				@acrule ((and(and(~~x), ~~y)) => (and_construction(Formula[~~x; ~~y])))
+				@acrule ((or(or(~~x), ~~y)) => (or_construction(Formula[~~x; ~~y])))
 			]
 		)
 	)
 end
+
+function dnf_simplifier()
+	Chain(
+		[
+			If(x->x.head==Or, Chain([
+				@acrule ((or(or(~~x), ~~y)) => (or_construction([~~x; ~~y])))
+			]))
+			If(x->x.head==Or, Chain([
+				@acrule ((and(and(~~x), ~~y)) => (and_construction([~~x; ~~y])))
+				@acrule ((and(or(~~x), ~~y)) => (distribute_or(~~x, ~~y)))
+			]))
+			If(x->x.head==Not,Chain([
+				@rule   ((not(~x::_istrue)) => (FalseAtom()))
+				@rule   ((not(~x::_isfalse)) => (TrueAtom()))
+				@rule   (not(implies(~x,~y)) => (and_construction([~x, not(~y)])))
+			]))
+		]
+	)
+end
+
+distribute_or(x,y) = or_construction([and_construction(Formula[x1;y]) for x1 in x])
 
 function solve_concrete_atom(f, a :: Constant, b :: Constant)
 	if f(a.value,b.value)
@@ -145,14 +167,29 @@ function solve_concrete_atom(f, a :: Constant, b :: Constant)
 	end
 end
 
+function atom_to_bounds()
+	Chain(
+		[
+			@rule (~a::_isvar <= ~b::is_literal_number => BoundConstraint(LessEqual, (~a).index[], (~b).value))
+			@rule (~a::_isvar < ~b::is_literal_number => BoundConstraint(Less, (~a).index[], (~b).value))
+			@rule (~a::is_literal_number <= ~b::_isvar => BoundConstraint(LessEqual, -((~b).index[]), -((~a).value)))
+			@rule (~a::is_literal_number < ~b::_isvar => BoundConstraint(Less, -((~b).index[]), -((~a).value)))
+		]
+	)
+end
+
 function atom_simplifier()
-	Postwalk(
-		Chain(
-			[
-				@rule (~a <= ~b::_isnotzero => leq(~a - ~b, Constant(0.0)))
-				@rule (~a < ~b::_isnotzero => less(~a - ~b, Constant(0.0)))
-			]
-		)
+	Chain(
+		[
+			atom_to_bounds(),
+			If(x -> x isa Atom, Chain(
+				[
+					@rule (~a <= ~b::_isnotzero => leq(~a - ~b, Constant(0.0)))
+					@rule (~a < ~b::_isnotzero => less(~a - ~b, Constant(0.0)))
+					@rule (~a == ~b::_isnotzero => eq(~a - ~b, Constant(0.0)))
+				]
+			)),
+		]
 	)
 end
 
@@ -204,13 +241,20 @@ end
 
 
 function prepare_linearization(n :: ASTNode)
-	f = Fixpoint(
-		Postwalk(
+	f = Prewalk(
 			Chain([
 				If(x -> x isa Atom, atom_simplifier())
 				If(x -> x isa Term, term_simplifier())
 			])
 		)
-	)
+	return PassThrough(f)(n)
+end
+
+function to_dnf(n :: ASTNode)
+	f = Fixpoint(Postwalk(
+			Chain([
+				If(x -> x isa Formula, dnf_simplifier())
+			])
+		))
 	return PassThrough(f)(n)
 end

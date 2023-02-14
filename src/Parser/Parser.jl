@@ -5,8 +5,28 @@ function parse_file(filename :: String)
     end
 end
 
+function CustomLexer(io::IO_t, T::Type{TT} = Token) where {IO_t,TT <: Tokens.AbstractToken}
+    c1 = ' '
+    p1 = position(io)
+    if eof(io)
+        c2, p2 = EOF_CHAR, p1
+        c3, p3 = EOF_CHAR, p1
+    else
+        c2 = read(io, Char)
+        p2 = position(io)
+        if eof(io)
+            c3, p3 = EOF_CHAR, p1
+        else
+            c3 = read(io, Char)
+            p3 = position(io)
+        end
+
+    end
+    return Tokenize.Lexers.Lexer{IO_t,T}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(;sizehint=64), (c1,c2,c3), (p1,p2,p3), false, false)
+end
+
 function parse_io(io :: IO)
-    token_manager = TokenManager(tokenize(io))
+    token_manager = TokenManager(tokenize(io))#CustomLexer(io,Tokens.Token))
     return parse_tokens(token_manager)
 end
 

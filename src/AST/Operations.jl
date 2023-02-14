@@ -12,7 +12,7 @@ function and(fs :: T1...) where {T1 <: Formula}
 	return and_construction(fs)
 end
 
-function and_construction(fs :: Vector{T1}) where {T1 <: Formula}
+function and_construction(fs)
 	if fs isa Formula
 		# In case there is only one element in and
 		return fs
@@ -22,14 +22,14 @@ function and_construction(fs :: Vector{T1}) where {T1 <: Formula}
 	elseif length(fs) == 1
 		return fs[1]
 	else
-        return CompositeFormula{And, T1}(Not, fs)
+        return CompositeFormula{And, Formula}(And, fs)
 	end
 end
 function or(fs :: T1...) where {T1 <: Formula}
 	return or_construction(fs)
 end
 
-function or_construction(fs :: Vector{T1}) where {T1 <: Formula}
+function or_construction(fs)
 	if fs isa Formula
 		# In case there is only one element in and
 		return fs
@@ -39,7 +39,7 @@ function or_construction(fs :: Vector{T1}) where {T1 <: Formula}
 	elseif length(fs) == 1
 		return fs[1]
 	else
-        return CompositeFormula{Or, T1}(Not, fs)
+        return CompositeFormula{Or, Formula}(Or, fs)
 	end
 end
 

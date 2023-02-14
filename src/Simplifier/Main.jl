@@ -7,4 +7,6 @@ module Simplifier
 
     include("TermInterface.jl")
     include("SymbolicUtils.jl")
+
+    export prepare_linearization
 end

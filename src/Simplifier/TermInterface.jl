@@ -12,9 +12,9 @@ istree(f::ArithmeticTerm) = true
 
 istree(f::True) = false
 istree(f::False) = false
-istree(f::LinearConstraint) = false
 istree(f::Variable) = false
 istree(f::Constant) = false
+istree(f::BoundConstraint) = false
 
 
 operation(f::CompositeFormula{And,<:Formula}) = (and)
@@ -44,35 +44,44 @@ arguments(f :: CompositeFormula{<:Connective,<:Formula}) = f.args
 arguments(f :: ComparisonFormula) = [f.left, f.right]
 arguments(f :: ArithmeticTerm) = f.args
 
-function similarterm(f :: Type{ASTNode}, head, args)
-    print("similarterm type")
-    return f
-end
-
 function similarterm(f :: ASTNode, head, args)
-    print("similarterm")
-    return f
+    error("Missing function similarterm for $(typeof(f)))")
 end
 
 function similarterm(f :: CompositeFormula{<:Connective,<:Formula}, head, args)
-    return @match head begin
-        (and) => CompositeFormula(And, args)
-        (or) => CompositeFormula(Or, args)
-        (not) => CompositeFormula(Not, args)
-        (implies) => CompositeFormula(Implies, args)
-        (iff) => CompositeFormula(Iff, args)
+    if head == (and)
+        return CompositeFormula(And, args)
+    elseif head == (or)
+        return CompositeFormula(Or, args)
+    elseif head == (not)
+        return CompositeFormula(Not, args)
+    elseif head == (implies)
+        return CompositeFormula(Implies, args)
+    elseif head == (iff)
+        return CompositeFormula(Iff, args)
+    else
+        error("Unknown composite formula $f")
     end
 end
+
+similarterm(f :: CompositeFormula{<:Connective,<:Formula}, head, args,_) = similarterm(f, head, args)
 
 function similarterm(f :: ComparisonFormula, head, args)
-    return @match head begin
-        (<) => ComparisonFormula(Less, args[1], args[2])
-        (<=) => ComparisonFormula(LessEqual, args[1], args[2])
-        (==) => ComparisonFormula(Equal, args[1], args[2])
+    if head == (==)
+        return ComparisonFormula(Equal, args[1], args[2])
+    elseif head == (<=)
+        return ComparisonFormula(LessEqual, args[1], args[2])
+    elseif head == (<)
+        return ComparisonFormula(Less, args[1], args[2])
+    else
+        error("Unknown comparison formula $f")
     end
 end
 
+similarterm(f :: ComparisonFormula, head, args,_) = similarterm(f, head, args)
+
 function similarterm(f :: ArithmeticTerm, head, args)
+    args = convert(Vector{Term}, args)
     if head == (+)
         return ArithmeticTerm(Addition, args)
     elseif head == (-)
@@ -87,6 +96,8 @@ function similarterm(f :: ArithmeticTerm, head, args)
         error("Unknown arithmetic term $f")
     end
 end
+
+similarterm(f :: ArithmeticTerm, head, args, _) = similarterm(f, head, args)
 
 
 function not_division(x :: Term)
@@ -119,6 +130,10 @@ end
 
 function is_literal_number(x :: Term)
 	return x isa Constant
+end
+
+function _isvar(x :: Term)
+    return x isa Variable
 end
 
 #exprhead(f :: ASTNode) = :call

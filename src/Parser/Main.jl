@@ -6,5 +6,6 @@ module Parser
     include("Parser.jl")
 
     export ParsingResult, DeclaredVariable, VnnExpression, CompositeVnnExpression, VnnIdentifier, VnnNumber
+    export parse_file
 
 end

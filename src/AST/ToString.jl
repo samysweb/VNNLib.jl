@@ -1,8 +1,8 @@
 import Base.show
 
-ast_to_string(f :: CompositeFormula{And,<:Formula}) = "(and" * join(map(ast_to_string,f.args), " ") * " )"
-ast_to_string(f :: CompositeFormula{Or,<:Formula}) = "(or" * join(map(ast_to_string,f.args), " ") * " )"
-ast_to_string(f :: CompositeFormula{Not,<:Formula}) = "(not" * ast_to_string(f.args[1]) * " )"
+ast_to_string(f :: CompositeFormula{And,<:Formula}) = "(and " * join(map(ast_to_string,f.args), " ") * " )"
+ast_to_string(f :: CompositeFormula{Or,<:Formula}) = "(or " * join(map(ast_to_string,f.args), " ") * " )"
+ast_to_string(f :: CompositeFormula{Not,<:Formula}) = "(not " * ast_to_string(f.args[1]) * " )"
 ast_to_string(f :: CompositeFormula{Implies,<:Formula}) = "(implies " * ast_to_string(f.args[1]) * " " * ast_to_string(f.args[2]) * " )"
 ast_to_string(f :: CompositeFormula{Iff,<:Formula}) = "(iff " * ast_to_string(f.args[1]) * " " * ast_to_string(f.args[2]) * " )"
 
@@ -17,15 +17,23 @@ function ast_to_string(f :: ComparisonFormula)
     end
 end
 
-function ast_to_string(f :: LinearConstraint)
-    return "(linear constraint)"
-end
-
 ast_to_string(f :: ArithmeticTerm{<:Term}) = "(" * ast_to_string(f.head) * " " * join(map(ast_to_string,f.args), " ") * " )"
 
 ast_to_string(f :: Variable) = string(f.name)
 
 ast_to_string(f :: Constant) = string(convert(Float64,f.value))
+
+function ast_to_string(f :: BoundConstraint)
+    op = @match f.head begin
+        Less => "<" 
+        LessEqual => "<="
+    end
+    if f.var_index > 0
+        return "(" * op * " v$(abs(f.var_index)) " * string(convert(Float64,f.bound)) * ")"
+    else
+        return "(" * op * " -v$(abs(f.var_index)) " * string(convert(Float64,f.bound)) * ")"
+    end
+end
 
 function ast_to_string(op :: Arithmetic)
     return @match op begin

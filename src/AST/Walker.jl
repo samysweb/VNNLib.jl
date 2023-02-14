@@ -16,15 +16,15 @@ end
         fun(f))
 end
 
-@inline function MapReduce(fun, fold_fun, init :: T, f :: LinearConstraint) :: T where T<:Any
-    return fold_fun(init, fun(f))
-end
-
 @inline function MapReduce(fun, fold_fun, init :: T, f :: ArithmeticTerm) :: T where T<:Any
     return fold_fun(mapreduce(arg -> MapReduce(fun, fold_fun, init, arg), fold_fun, f.args; init=init), fun(f))
 end
 
 @inline function MapReduce(fun, fold_fun, init :: T, f :: Variable) :: T where T<:Any
+    return fold_fun(init, fun(f))
+end
+
+@inline function MapReduce(fun, fold_fun, init :: T, f::BoundConstraint) :: T where T<:Any
     return fold_fun(init, fun(f))
 end
 
@@ -48,15 +48,15 @@ end
     return (typeof(f))(f.head, Map(fun, f.left), Map(fun, f.right))
 end
 
-@inline function Map(fun, f :: LinearConstraint)
-    return fun(f)
-end
-
 @inline function Map(fun, f :: ArithmeticTerm)
     return (typeof(f))(f.head, map(arg -> Map(fun, arg), f.args))
 end
 
 @inline function Map(fun, f :: Variable)
+    return fun(f)
+end
+
+@inline function Map(fun, f::BoundConstraint)
     return fun(f)
 end
 
