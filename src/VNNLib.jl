@@ -46,6 +46,9 @@ end
 
 export get_ast, iterate, AST, ast_to_lp
 
+export Network, Layer, Dense, ReLU
+export load_network
+
 
 
 end # module VNNLib

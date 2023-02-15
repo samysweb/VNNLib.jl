@@ -110,7 +110,7 @@ module NNLoader
     end
             
 
-    function load(filename::String)
+    function load_network(filename::String)
         onnx_proto_model = open(filename,"r") do f
             input = ProtoDecoder(f)
             return decode(input, onnx.ModelProto)
@@ -188,4 +188,7 @@ module NNLoader
         
         return network
     end
+
+    export Network, Layer, Dense, ReLU
+    export load_network
 end
