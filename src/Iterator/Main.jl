@@ -7,17 +7,20 @@ using ..Simplifier
 using ..Linearization
 
 function iterate(ast :: ASTNode)
-    # Adjust atoms and terms
     linearized = prepare_linearization(ast)
-    # Adjust formula structure
-    dnf = to_dnf(linearized)
-    if dnf.head == And && length(dnf.args)==1
-        dnf = dnf.args[1]
+    if (linearized.head == And || linearized.head == Or) && length(linearized.args)==1
+        linearized = linearized.args[1]
     end
-    if dnf.head == Or
-        return ast_to_lp(dnf.args[1]), (2,dnf)
+    if linearized.head == And && all(isa.(linearized.args,Atom))
+        return ast_to_lp(linearized), nothing
+    elseif linearized.head == Or && all(map(f->f.head == And && all(isa.(f.args, Atom)), linearized.args))
+        return ast_to_lp(linearized.args[1]), (2,linearized)
     else
-        return ast_to_lp(dnf), nothing
+        dnf = to_dnf(linearized)
+        if dnf.head == And && length(dnf.args)==1
+            dnf = dnf.args[1]
+        end
+        return ast_to_lp(dnf.args[1]), (2,dnf)
     end
 end
 

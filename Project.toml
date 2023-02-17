@@ -1,7 +1,7 @@
 name = "VNNLib"
 uuid = "286915b0-5841-4eea-9013-d818f395ad8c"
 authors = ["Samuel Teuber <teuber@kit.edu>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
