@@ -1,32 +1,15 @@
 function parse_file(filename :: String)
     # Parse VNNLib File
     open(filename, "r") do file_io
+        file_io = IOBuffer(Mmap.mmap(file_io))
         return parse_io(file_io)
     end
 end
 
-function CustomLexer(io::IO_t, T::Type{TT} = Token) where {IO_t,TT <: Tokens.AbstractToken}
-    c1 = ' '
-    p1 = position(io)
-    if eof(io)
-        c2, p2 = EOF_CHAR, p1
-        c3, p3 = EOF_CHAR, p1
-    else
-        c2 = read(io, Char)
-        p2 = position(io)
-        if eof(io)
-            c3, p3 = EOF_CHAR, p1
-        else
-            c3 = read(io, Char)
-            p3 = position(io)
-        end
-
-    end
-    return Tokenize.Lexers.Lexer{IO_t,T}(io, position(io), 1, 1, position(io), 1, 1, position(io), Tokens.ERROR, IOBuffer(;sizehint=64), (c1,c2,c3), (p1,p2,p3), false, false)
-end
-
 function parse_io(io :: IO)
-    token_manager = TokenManager(tokenize(io))#CustomLexer(io,Tokens.Token))
+    lexer = tokenize(io)
+    Base.ensureroom(lexer.charstore,32)
+    token_manager = TokenManager(lexer)#CustomLexer(io,Tokens.Token))
     return parse_tokens(token_manager)
 end
 
@@ -55,7 +38,7 @@ function parse_expression(token_manager :: TokenManager)
         return VnnIdentifier(token, Tokens.startpos(token))
     elseif Tokens.exactkind(token) == Tokens.FLOAT
         next(token_manager)
-        return VnnNumber(Rational{BigInt}(parse(BigFloat, Tokens.untokenize(token))), Tokens.startpos(token))
+        return VnnNumber(Rational{BigInt}(parse(Float64, Tokens.untokenize(token))), Tokens.startpos(token))
     elseif Tokens.kind(token) == Tokens.LPAREN
         next(token_manager)
         token = next(token_manager)
@@ -64,6 +47,7 @@ function parse_expression(token_manager :: TokenManager)
         end
         head = token
         args = Vector{VnnExpression}()
+        sizehint!(args,2)
         token = peek_token(token_manager)
         while Tokens.kind(token) != Tokens.RPAREN && Tokens.kind(token) != Tokens.ENDMARKER
             push!(args, parse_expression(token_manager))

@@ -1,5 +1,7 @@
 module Parser
     using Tokenize
+
+    using Mmap
     
     include("Definitions.jl")
     include("TokenManager.jl")

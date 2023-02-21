@@ -10,6 +10,8 @@ function ast_to_lp(conjunction :: Formula)
         end
     end
     constraint_bounds = zeros(Float64, num_vars, 2)
+    constraint_bounds[:,1] .= -Inf
+    constraint_bounds[:,2] .= Inf
     constraint_matrix = zeros(Float64, num_atoms, num_vars)
     constraint_vector = zeros(Float64, num_atoms)
     constraint_index = 1
