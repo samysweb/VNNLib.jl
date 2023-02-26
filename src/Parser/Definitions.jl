@@ -27,8 +27,8 @@ end
 
 struct VnnIdentifier <: VnnExpression
     name :: Tokens.Token
-    position :: Tuple{Int64,Int64}
-    VnnIdentifier(name :: Tokens.Token, position :: Tuple{Int64,Int64}) = new(name, position)
+    position :: Tuple{Int,Int}
+    VnnIdentifier(name :: Tokens.Token, position :: Tuple{Int,Int}) = new(name, position)
 end
 
 struct VnnNumber <: VnnExpression
