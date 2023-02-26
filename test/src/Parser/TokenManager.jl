@@ -46,5 +46,7 @@ using VNNLib.Parser: peek_token, next
 		if !isnothing(untokenize)
 			@test Tokens.untokenize(t) == untokenize
 		end
+		@inferred peek_token(create_tm(input))
+		@inferred next(create_tm(input))
 	end
 end
