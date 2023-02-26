@@ -42,7 +42,7 @@ function next(tokenmanager :: TokenManager) :: Tokens.Token
             return current_token
         end
         if comment
-            if Tokens.kind(current_token) == Tokens.WHITESPACE && Tokens.untokenize(current_token) == "\n"
+            if Tokens.kind(current_token) == Tokens.WHITESPACE && !isnothing(findfirst('\n',Tokens.untokenize(current_token)))
                 comment = false
             end
             continue
