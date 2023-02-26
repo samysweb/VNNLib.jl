@@ -1,4 +1,7 @@
 # VNNLib.jl
+
+[![Run tests](https://github.com/samysweb/VNNLib.jl/actions/workflows/ci.yml/badge.svg?branch=test)](https://github.com/samysweb/VNNLib.jl/actions/workflows/ci.yml)
+
 This library helps with the parsing and processing of properties in the VNN Lib format.
 
 ## Basic usage
