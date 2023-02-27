@@ -32,3 +32,5 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
         with:
           annotate: true
+      - uses: codecov/codecov-action@v3
+        name: Upload coverage reports to Codecov
