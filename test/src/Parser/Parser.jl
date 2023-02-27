@@ -202,3 +202,71 @@ end
 		end
 	end
 end
+
+@testset "ParserFailure" begin
+	test_inputs = [
+		(
+			"""
+			(declare-const X_0 Real
+			""",
+			true
+		)
+		(
+			"""
+			(assert (<= X_0 1.0)
+			""",
+			true
+		)
+		(
+			"""
+			(assert (X_0 <= 1.0 + X_1))
+			""",
+			true
+		)
+		(
+			"""
+			1.0 + X_1
+			""",
+			true
+		)
+		(
+			"""
+			(declare-const X_0 Real)
+			1.0 + X_1 <= 0.0
+			""",
+			true
+		)
+		(
+			"""
+			(declare-const X_0 Real)
+			(assert 1.0 + X_1 <= 0.0)
+			""",
+			true
+		)
+		(
+			"""
+			1.0 + X_1 <= 0.0
+			""",
+			true
+		)
+		(
+			"""
+			declare-const X_0 Real
+			""",
+			true
+		)
+		(
+			"""
+			(declare-const X_0)
+			""",
+			true
+		)
+	]
+	for (input, run) in test_inputs
+		if !run
+			continue
+		end
+		t = create_tm(input)
+		@test_throws r"Expected .*" parse_tokens(t)
+	end
+end
