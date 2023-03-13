@@ -6,16 +6,19 @@ abstract type Formula <: ASTNode end
 abstract type Atom <: Formula end
 abstract type Term <: ASTNode end
 
-abstract type Connective end
-abstract type And <: Connective end
-abstract type Or <: Connective end
-abstract type Not <: Connective end
-abstract type Implies <: Connective end
-abstract type Iff <: Connective end
+@enum Connective begin
+    And
+    Or
+    Not
+    Implies
+    Iff
+end
+MLStyle.is_enum(::Connective) = true
+MLStyle.pattern_uncall(a::Connective, _, _, _, _) = literal(a)
 
-@as_record struct CompositeFormula{C <: Connective, F <: Formula} <: Formula
-    head :: Type{C}
-    args :: Vector{F}
+@as_record struct CompositeFormula <: Formula
+    head :: Connective
+    args :: Vector{Formula}
 end
 
 
@@ -55,9 +58,9 @@ end
 MLStyle.is_enum(::Arithmetic) = true
 MLStyle.pattern_uncall(a::Arithmetic, _, _, _, _) = literal(a)
 
-@as_record struct ArithmeticTerm{T <: Term} <: Term
+@as_record struct ArithmeticTerm <: Term
     head :: Arithmetic
-    args :: Vector{T}
+    args :: Vector{Term}
 end
 
 @enum VariableSort begin

@@ -1,10 +1,11 @@
 import Base.show
-
-ast_to_string(f :: CompositeFormula{And,<:Formula}) = "(and " * join(map(ast_to_string,f.args), " ") * " )"
-ast_to_string(f :: CompositeFormula{Or,<:Formula}) = "(or " * join(map(ast_to_string,f.args), " ") * " )"
-ast_to_string(f :: CompositeFormula{Not,<:Formula}) = "(not " * ast_to_string(f.args[1]) * " )"
-ast_to_string(f :: CompositeFormula{Implies,<:Formula}) = "(implies " * ast_to_string(f.args[1]) * " " * ast_to_string(f.args[2]) * " )"
-ast_to_string(f :: CompositeFormula{Iff,<:Formula}) = "(iff " * ast_to_string(f.args[1]) * " " * ast_to_string(f.args[2]) * " )"
+ast_to_string(f :: CompositeFormula) = @match f.head begin
+    And => "(and " * join(map(ast_to_string,f.args), " ") * " )"
+    Or => "(or " * join(map(ast_to_string,f.args), " ") * " )"
+    Not => "(not " * ast_to_string(f.args[1]) * " )"
+    Implies => "(implies " * ast_to_string(f.args[1]) * " " * ast_to_string(f.args[2]) * " )"
+    Iff => "(iff " * ast_to_string(f.args[1]) * " " * ast_to_string(f.args[2]) * " )"
+end
 
 ast_to_string(f :: True) = "true"
 ast_to_string(f :: False) = "false"
@@ -17,7 +18,7 @@ function ast_to_string(f :: ComparisonFormula)
     end
 end
 
-ast_to_string(f :: ArithmeticTerm{<:Term}) = "(" * ast_to_string(f.head) * " " * join(map(ast_to_string,f.args), " ") * " )"
+ast_to_string(f :: ArithmeticTerm) = "(" * ast_to_string(f.head) * " " * join(map(ast_to_string,f.args), " ") * " )"
 
 ast_to_string(f :: Variable) = string(f.name)
 
