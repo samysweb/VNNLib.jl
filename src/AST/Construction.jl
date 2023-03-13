@@ -107,10 +107,19 @@ function process_parser_output(
     output :: ParsingResult,
     variable_labeler)
     variables = generate_variable_dict(output, variable_labeler)
+    n_input = 0
+    n_output = 0
+    for variable in values(variables)
+        if variable.sort == Input
+            n_input += 1
+        else
+            n_output += 1
+        end
+    end
     assertions = Vector{Formula}()
     for assertion in output.assertions
         formula = process_vnn_formula(assertion, variables)
         push!(assertions, formula)
     end
-    return CompositeFormula(And, assertions)
+    return CompositeFormula(And, assertions), n_input, n_output
 end

@@ -83,8 +83,8 @@ POW_RULES = [
 
 ASSORTED_RULES = [
 	#@rule(identity(~x) => ~x)
-	@rule(-(~x) => -1*~x)
-	@rule(-(~x, ~y) => ~x + -1(~y))
+	@rule(-(~x) => Constant(-1.0) * ~x)
+	@rule(-(~x, ~y) => ~x + Constant(-1.0) * (~y))
 	#@rule(~x::_isone \ ~y => ~y)
 	#@rule(~x \ ~y => ~y / (~x))
 	#@rule(one(~x) => one(symtype(~x)))

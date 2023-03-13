@@ -14,7 +14,7 @@ function ast_to_lp(conjunction :: Formula)
     constraint_bounds[:,2] .= Inf
     constraint_matrix = zeros(Float64, num_atoms, num_vars)
     constraint_vector = zeros(Float64, num_atoms)
-    constraint_index = 1
+    constraint_index = 0
     for atom in conjunction.args
         contains_output = MapReduce(((x,y)->x||y),false,atom) do x
             return x isa Variable && x.sort == Output
@@ -51,6 +51,7 @@ function add_constraint(atom :: ComparisonFormula,  constraint_index, constraint
     @assert atom.right isa Constant && iszero(atom.right.value)
     # TODO(steuber): take Less into account
     @assert atom.left isa ArithmeticTerm && atom.left.head == Addition
+    constraint_index+=1
     for arg in atom.left.args
         if arg isa Variable
             constraint_matrix[constraint_index,arg.index[]] = 1.0
@@ -63,11 +64,10 @@ function add_constraint(atom :: ComparisonFormula,  constraint_index, constraint
             error("Unknown atom type: $(typeof(atom))")
         end
     end
-    constraint_index+=1
     if atom.head == Equal
+        constraint_index+=1
         constraint_matrix[constraint_index,:] .= -constraint_matrix[constraint_index-1,:]
         constraint_vector[constraint_index] .= -constraint_vector[constraint_index-1]
-        constraint_index+=1
     end
     return constraint_index
 end

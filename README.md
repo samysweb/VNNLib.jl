@@ -10,7 +10,10 @@ This library helps with the parsing and processing of properties in the VNN Lib 
 using VNNLib
 
 # Load VNNLib property as an AST
-f = get_ast("test/examples/acas2.vnn")
+f, n_input, n_output = get_ast("test/examples/acas2.vnn")
+
+# n_input: Number of input variables
+# n_output: Number of output variables
 
 # Iterate over linear constraints encoded by acas2.vnn
 for (bounds, matrix, bias, num) in f
