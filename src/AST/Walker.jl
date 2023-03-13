@@ -1,4 +1,4 @@
-@inline function MapReduce(fun, fold_fun, init :: T, f :: CompositeFormula{<:Connective,<:Formula}) :: T where T<:Any
+@inline function MapReduce(fun, fold_fun, init :: T, f :: CompositeFormula) :: T where T<:Any
     return fold_fun(mapreduce(arg -> MapReduce(fun, fold_fun, init, arg), fold_fun, f.args; init=init), fun(f))
 end
 
@@ -32,7 +32,7 @@ end
     return fold_fun(init, fun(f))
 end
 
-@inline function Map(fun, f :: CompositeFormula{<:Connective,<:Formula})
+@inline function Map(fun, f :: CompositeFormula)
     return (typeof(f))(f.head, map(arg -> Map(fun, arg), f.args))
 end
 

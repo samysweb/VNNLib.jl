@@ -16,12 +16,12 @@ end
 function parse_variable_declaration(token_manager :: TokenManager, result :: ParsingResult)
     token1 = next(token_manager)
     if Tokens.kind(token1) != Tokens.IDENTIFIER
-        error("Expected (name) identifier but found '$(token1)' at ", Tokens.startpos(token))
+        error("Expected (name) identifier but found '$(token1)' at ", Tokens.startpos(token1))
     end
     name = token1
     token2 = next(token_manager)
     if Tokens.kind(token2) != Tokens.IDENTIFIER
-        error("Expected (type) identifier but found '$(token2)' at ", Tokens.startpos(token))
+        error("Expected (type) identifier but found '$(token2)' at ", Tokens.startpos(token2))
     end
     type = token2
     token = next(token_manager)

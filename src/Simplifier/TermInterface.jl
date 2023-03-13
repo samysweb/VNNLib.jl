@@ -6,7 +6,7 @@ import SymbolicUtils.symtype
 import SymbolicUtils.promote_symtype
 import SymbolicUtils.is_literal_number
 
-istree(f::CompositeFormula{<:Connective,<:Formula}) = true
+istree(f::CompositeFormula) = true
 istree(f::ComparisonFormula) = true
 istree(f::ArithmeticTerm) = true
 
@@ -16,12 +16,15 @@ istree(f::Variable) = false
 istree(f::Constant) = false
 istree(f::BoundConstraint) = false
 
+operation(f::CompositeFormula) = @match f.head begin
+    And => (and)
+    Or => (or)
+    Not => (not)
+    Implies => (implies)
+    Iff => (iff)
+    _ => error("Unknown composite formula $f")
+end
 
-operation(f::CompositeFormula{And,<:Formula}) = (and)
-operation(f::CompositeFormula{Or,<:Formula}) = (or)
-operation(f::CompositeFormula{Not,<:Formula}) = (not)
-operation(f::CompositeFormula{Implies,<:Formula}) = (implies)
-operation(f::CompositeFormula{Iff,<:Formula}) = (iff)
 function operation(f::ComparisonFormula)
     return @match f.head begin
         Less => (<)
@@ -29,7 +32,7 @@ function operation(f::ComparisonFormula)
         Equal => (==)
     end
 end
-function operation(f::ArithmeticTerm{<:Term})
+function operation(f::ArithmeticTerm)
     return @match f.head begin
         Addition => (+)
         Subtraction => (-)
@@ -40,7 +43,7 @@ function operation(f::ArithmeticTerm{<:Term})
     end
 end
 
-arguments(f :: CompositeFormula{<:Connective,<:Formula}) = f.args
+arguments(f :: CompositeFormula) = f.args
 arguments(f :: ComparisonFormula) = [f.left, f.right]
 arguments(f :: ArithmeticTerm) = f.args
 
@@ -48,7 +51,7 @@ function similarterm(f :: ASTNode, head, args)
     error("Missing function similarterm for $(typeof(f)))")
 end
 
-function similarterm(f :: CompositeFormula{<:Connective,<:Formula}, head, args)
+function similarterm(f :: CompositeFormula, head, args)
     if head == (and)
         return CompositeFormula(And, args)
     elseif head == (or)
@@ -64,7 +67,7 @@ function similarterm(f :: CompositeFormula{<:Connective,<:Formula}, head, args)
     end
 end
 
-similarterm(f :: CompositeFormula{<:Connective,<:Formula}, head, args,_) = similarterm(f, head, args)
+similarterm(f :: CompositeFormula, head, args,_) = similarterm(f, head, args)
 
 function similarterm(f :: ComparisonFormula, head, args)
     if head == (==)

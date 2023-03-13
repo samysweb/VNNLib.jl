@@ -1,4 +1,8 @@
 # VNNLib.jl
+
+[![Run tests](https://github.com/samysweb/VNNLib.jl/actions/workflows/ci.yml/badge.svg?branch=test)](https://github.com/samysweb/VNNLib.jl/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/github/samysweb/VNNLib.jl/branch/test/graph/badge.svg?token=G23F6Z1LH3)](https://codecov.io/github/samysweb/VNNLib.jl)
+
 This library helps with the parsing and processing of properties in the VNN Lib format.
 
 ## Basic usage

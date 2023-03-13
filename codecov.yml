@@ -1,0 +1,26 @@
+# sample regex patterns
+ignore:
+  - "src/NNLoader/onnx"
+flag_management:
+  individual_flags:
+    - name: Parser
+      paths:
+        - src/Parser/
+      statuses:
+        - type: project
+          target: 80%
+          threshold: 2.5%
+    - name: AST
+      paths:
+        - src/AST/
+      statuses:
+        - type: project
+          target: auto
+          threshold: 2.5%
+    - name: NNLoader
+      paths:
+        - src/NNLoader/
+      statuses:
+        - type: project
+          target: auto
+          threshold: 2.5%
