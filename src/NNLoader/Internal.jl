@@ -25,6 +25,8 @@ module Internal
             return reshape(reinterpret(Float32, tensor.raw_data),Tuple(reverse(dims)))
         elseif tensor_dtype == Int(onnx.var"TensorProto.DataType".DOUBLE)
             return reshape(reinterpret(Float64, tensor.raw_data),Tuple(reverse(dims)))
+        elseif tensor_dtype == Int(onnx.var"TensorProto.DataType".INT64)
+            return reshape(reinterpret(Int64, tensor.raw_data),Tuple(reverse(dims)))
         else
             error("TensorProto.data_type $(tensor_dtype) is not yet supported")
         end

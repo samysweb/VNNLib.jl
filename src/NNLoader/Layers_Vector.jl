@@ -20,7 +20,11 @@ function (L::VNNLibAdd{T})(x) where T<:Real
 end
 
 function (L::VNNLibDense{T})(x) where T<:Real
-    return L.W * x .+ L.b
+    res = L.W * x
+    if !isnothing(L.b)
+        res .+= L.b
+    end
+    return res
 end
 
 function (L::VNNLibReLU{T})(x) where T<:Real
@@ -28,5 +32,6 @@ function (L::VNNLibReLU{T})(x) where T<:Real
 end
 
 function (L::VNNLibFlatten{T})(x) where T<:Real
+    @assert L.axis == 1
     return x[:]
 end
