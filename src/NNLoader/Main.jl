@@ -11,7 +11,7 @@ module NNLoader
     include("Definition.jl")
     include("Layers_Vector.jl")
     include("NetworkConstructors.jl")
-            
+
 
     """
     Parses constant nodes and adds their values to the initializer_map.
@@ -31,6 +31,24 @@ module NNLoader
         end
     end
 
+
+    function get_input_shape(graph::GraphProto)
+        @assert length(graph.input) == 1 "Only models with a single input are supported!"
+        input_node = graph.input[1]
+    
+        tensor_shape_proto_dims = input_node.var"#type".value.value.shape.dim
+        return extract_shape(tensor_shape_proto_dims)
+    end
+
+
+    function get_output_shape(graph::GraphProto)
+        @assert length(graph.output) == 1 "Only models with a single output are supported!"
+    
+        output_node = graph.output[1]
+        tensor_shape_proto_dims = output_node.var"#type".value.value.shape.dim
+        return extract_shape(tensor_shape_proto_dims)
+    end
+            
 
     function load_network_dict(net_type::Type{<:NetworkType},filename::String;return_graph=false)
         onnx_proto_model = open(filename,"r") do f
@@ -61,7 +79,10 @@ module NNLoader
 
         print(inputs)
         print(outputs)
-        return construct_network(net_type, inputs, outputs, node_map)
+
+        input_shape = get_input_shape(graph)
+        output_shape = get_output_shape(graph)
+        return construct_network(net_type, inputs, outputs, node_map, input_shape, output_shape)
     end
 
     function process_graph_node(net_type::Type{<:NetworkType}, node :: NodeProto, initializer_map)

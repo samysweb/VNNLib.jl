@@ -2,7 +2,7 @@ module Internal
     include("onnx/onnx.jl")
     using .onnx
 
-    export tensor_to_array
+    export tensor_to_array, extract_shape
 
     function tensor_to_array(tensor :: TensorProto)
         if !isnothing(tensor.segment)
@@ -32,4 +32,20 @@ module Internal
         end
         
     end
+
+
+    """
+    Extracts the shape of a TensorShapeProto.
+
+    Shapes are not always just integer vectors, e.g. ["batch_size", 1, 1] is also valid.
+    """
+    function extract_shape(tensor_shape_proto_dims::AbstractVector{<:var"TensorShapeProto.Dimension"})
+        dims = []  # not only int, but can also be string e.g. "batch_size"
+        for i in eachindex(tensor_shape_proto_dims)
+            # TODO: there has to be a better way!
+            push!(dims, tensor_shape_proto_dims[i].value.value)
+        end
+
+    return dims
+end
 end

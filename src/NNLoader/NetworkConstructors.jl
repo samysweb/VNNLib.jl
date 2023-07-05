@@ -36,7 +36,7 @@ function construct_layer_flatten(::Type{<:NetworkType}, name, inputs, outputs, d
     throw("Not implemented")
 end
 
-function construct_network(::Type{<:NetworkType}, inputs, outputs, nodes)
+function construct_network(::Type{<:NetworkType}, inputs, outputs, nodes, input_shape, output_shape)
     throw("Not implemented")
 end
 function construct_layer_reshape(::Type{<:NetworkType}, name, inputs, outputs, data, shape)
@@ -239,4 +239,6 @@ function construct_layer_upsample(::Type{VNNLibNetworkConstructor}, name, inputs
     
 end
 
+function construct_network(::Type{VNNLibNetworkConstructor}, inputs, outputs, nodes, input_shape, output_shape)
+    return VNNLibNetwork{Float64}(inputs, outputs, nodes, input_shape, output_shape)
 end
