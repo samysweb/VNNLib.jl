@@ -13,6 +13,25 @@ module NNLoader
     include("NetworkConstructors.jl")
             
 
+    """
+    Parses constant nodes and adds their values to the initializer_map.
+
+    Caveats:
+    - assumes that all constants have TENSOR type
+    - assumes that all constants only have one attribute
+    """
+    function process_constants!(graph, initializer_map)
+        constants = [n for n in graph.node if n.op_type == "Constant"]
+        for c in constants 
+            @assert length(c.attribute) == 1 "Expected only 1 attribute for constant $(c.name), got : $(c.attribute)"
+            @assert c.attribute[1].var"#type" == onnx.var"AttributeProto.AttributeType".TENSOR "Expected constant of type TENSOR, got $(c.attribute[1].var"#type")"
+            for o in c.output
+                initializer_map[o] = c.attribute[1].t
+            end
+        end
+    end
+
+
     function load_network_dict(net_type::Type{<:NetworkType},filename::String;return_graph=false)
         onnx_proto_model = open(filename,"r") do f
             input = ProtoDecoder(f)
@@ -25,8 +44,14 @@ module NNLoader
 
         initializer_map = Dict(i.name => i for i in graph.initializer)
 
+        process_constants!(graph, initializer_map)
+
         node_map = Dict()
         for node in graph.node
+            if node.op_type == "Constant"
+                println("Skipping constant")
+                continue
+            end
             print(keys(node_map))
             node_map[node.name] = process_graph_node(net_type, node, initializer_map)
         end
