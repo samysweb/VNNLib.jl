@@ -32,19 +32,19 @@ module NNLoader
     end
 
 
-    function get_input_shape(graph::GraphProto)
-        @assert length(graph.input) == 1 "Only models with a single input are supported!"
-        input_node = graph.input[1]
+    function get_input_shape(inputs::AbstractVector{ValueInfoProto})
+        @assert length(inputs) == 1 "Only models with a single input are supported! (got $inputs)"
+        input_node = inputs[1]
     
         tensor_shape_proto_dims = input_node.var"#type".value.value.shape.dim
         return extract_shape(tensor_shape_proto_dims)
     end
 
 
-    function get_output_shape(graph::GraphProto)
-        @assert length(graph.output) == 1 "Only models with a single output are supported!"
+    function get_output_shape(outputs::AbstractVector{ValueInfoProto})
+        @assert length(outputs) == 1 "Only models with a single output are supported! (got $outputs)"
     
-        output_node = graph.output[1]
+        output_node = outputs[1]
         tensor_shape_proto_dims = output_node.var"#type".value.value.shape.dim
         return extract_shape(tensor_shape_proto_dims)
     end
@@ -80,8 +80,8 @@ module NNLoader
         print(inputs)
         print(outputs)
 
-        input_shape = get_input_shape(graph)
-        output_shape = get_output_shape(graph)
+        input_shape = get_input_shape([i for i in graph.input if !haskey(initializer_map,i.name)])
+        output_shape = get_output_shape([o for o in graph.output if !in(o.name, all_inputs)])
         return construct_network(net_type, inputs, outputs, node_map, input_shape, output_shape)
     end
 
