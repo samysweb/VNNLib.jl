@@ -21,6 +21,16 @@ function construct_layer_relu(::Type{<:NetworkType}, name,  inputs, outputs, dat
     throw("Not implemented")
 end
 
+function construct_layer_sigmoid(::Type{<:NetworkType}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    throw("Not implemented")    
+end
+
+function construct_layer_tanh(::Type{<:NetworkType}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    throw("Not implemented")
+end
+
 function construct_layer_flatten(::Type{<:NetworkType}, name, inputs, outputs, data;axis=1)
     @assert data == DynamicInput
     throw("Not implemented")
@@ -59,6 +69,31 @@ end
 function construct_layer_div(::Type{<:NetworkType}, name, inputs, outputs, A, B)
     throw("Not implemented")
 end
+
+function construct_layer_pow(::Type{<:NetworkType}, name, inputs, outputs, A, B)
+    throw("Not implemented")
+end
+
+function construct_layer_batch_normalization(::Type{<:NetworkType}, name, inputs, outputs, X, scale, B, input_mean, input_var; epsilon=1e-5, momentum=0.9, training_mode=0)
+    throw("Not implemented")
+end
+
+function construct_layer_conv_transpose(::Type{<:NetworkType}, name, inputs, outputs, data, weights, bias;
+    auto_pad="NOTSET", dilations=nothing, group=1, kernel_shape=nothing, output_padding=nothing, output_shape=nothing, pads=nothing, strides=nothing)
+    throw("Not implemented")
+end
+
+function construct_layer_dropout(::Type{<:NetworkType}, name, inputs, outputs, data; ratio=nothing, training_mode=false)
+    @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
+    throw("Not implemented")
+end
+
+function construct_layer_upsample(::Type{<:NetworkType}, name, inputs, outputs, data, scales; mode="nearest")
+    @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
+    println("Constructing Upsample: data = $data, scales = $scales")
+    throw("Not implemented")
+end
+
 # Implementations for VNNLibNetwork
 
 function construct_layer_add(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, a, b)
@@ -69,8 +104,17 @@ function construct_layer_sub(::Type{VNNLibNetworkConstructor}, name, inputs, out
     return VNNLibSub{Float64}(name, inputs, outputs, a, b)
 end
 
-function construct_layer_matmul(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, weight, x)
+function construct_layer_matmul(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, weight, x::Type{DynamicInput})
     @assert x == DynamicInput
+    println("typeof(weight) = ", typeof(weight))
+    println("weight <: Array{N} ? ", typeof(weight) <: AbstractArray{<:Number})
+    return VNNLibDense{Float64}(name, inputs, outputs, weight, nothing)
+end
+
+function construct_layer_matmul(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, x::Type{DynamicInput}, weight)
+    @assert x == DynamicInput
+    println("typeof(weight) = ", typeof(weight))
+    println("weight <: Array{N} ? ", typeof(weight) <: AbstractArray{<:Number})
     return VNNLibDense{Float64}(name, inputs, outputs, weight, nothing)
 end
 
@@ -89,6 +133,16 @@ end
 function construct_layer_relu(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
     @assert data == DynamicInput
     return VNNLibReLU{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_sigmoid(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    return VNNLibSigmoid{Float64}(name, inputs, outputs)  
+end
+
+function construct_layer_tanh(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    return VNNLibTanh{Float64}(name, inputs, outputs)  
 end
 
 function construct_layer_flatten(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data;axis=1)
@@ -155,6 +209,34 @@ function construct_layer_div(::Type{VNNLibNetworkConstructor}, name, inputs, out
     return VNNLibDiv{Float64}(name, inputs, outputs)
 end
 
-function construct_network(::Type{VNNLibNetworkConstructor}, inputs, outputs, nodes)
-    return VNNLibNetwork{Float64}(inputs, outputs, nodes)
+function construct_layer_pow(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, A, B)
+    @assert A == DynamicInput
+    return VNNLibPow{Float64}(name, inputs, outputs, B)
+end
+
+
+function construct_layer_batch_normalization(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, X, scale, B, input_mean, input_var; epsilon=1e-5, momentum=0.9, training_mode=0)
+    @assert X == DynamicInput 
+    return VNNLibBatchNorm{Float64}(name, inputs, outputs, X, scale, B, input_mean, input_var, epsilon, momentum, training_mode)
+end
+
+function construct_layer_conv_transpose(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, weights, bias;
+    auto_pad="NOTSET", dilations=nothing, group=1, kernel_shape=nothing, output_padding=nothing, output_shape=nothing, pads=nothing, strides=nothing)
+    println("constructing convT!")
+    @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
+    return VNNLibConvTranspose{Float64}(name, inputs, outputs, weights, bias, auto_pad, dilations, group, kernel_shape, output_padding, output_shape, pads, strides)
+end
+
+function construct_layer_dropout(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; ratio=nothing, training_mode=false)
+    @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
+    return VNNLibDropout{Float64}(name, inputs, outputs, ratio, training_mode)
+end
+
+function construct_layer_upsample(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, scales; mode="nearest")
+    @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
+    println("Constructing Upsample: data = $data, scales = $scales")
+    return VNNLibUpsample{Float64}(name, inputs, outputs, scales, mode)
+    
+end
+
 end

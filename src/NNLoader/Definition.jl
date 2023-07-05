@@ -50,6 +50,24 @@ struct VNNLibReLU{T} <: VNNLibLayer{T}
     end
 end
 
+struct VNNLibSigmoid{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    function VNNLibSigmoid{T}(name :: String, inputs :: Vector{String}, outputs :: Vector{String}) where T<:Real
+        return new{T}(name, inputs, outputs)
+    end
+end
+
+struct VNNLibTanh{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    function VNNLibTanh{T}(name :: String, inputs :: Vector{String}, outputs :: Vector{String}) where T<:Real
+        return new{T}(name, inputs, outputs)
+    end
+end
+
 struct VNNLibFlatten{T} <: VNNLibLayer{T}
     name::String
     inputs::Vector{String}
@@ -136,6 +154,13 @@ struct VNNLibDiv{T} <: VNNLibLayer{T}
     outputs::Vector{String}
 end
 
+struct VNNLibPow{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    exponent
+end
+
 struct VNNLibReduceSum{T} <: VNNLibLayer{T}
     name::String
     inputs::Vector{String}
@@ -143,4 +168,50 @@ struct VNNLibReduceSum{T} <: VNNLibLayer{T}
     axes
     keepdims
     noop_with_empty_axes
+end
+
+struct VNNLibBatchNorm{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    data
+    scale
+    bias
+    input_mean
+    input_var
+    epsilon
+    momentum
+    training_mode
+end
+
+struct VNNLibConvTranspose{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    W
+    b
+    auto_pad
+    dilations
+    group
+    kernel_shape
+    output_padding
+    ouput_shape
+    pads
+    strides
+end
+
+struct VNNLibDropout{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    ratio
+    traning_mode
+end
+
+struct VNNLibUpsample{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    scales
+    mode
 end

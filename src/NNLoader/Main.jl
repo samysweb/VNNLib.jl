@@ -80,6 +80,8 @@ module NNLoader
                 "Add" => construct_layer_add
                 "MatMul" => construct_layer_matmul
                 "Relu" => construct_layer_relu
+                "Sigmoid" => construct_layer_sigmoid
+                "Tanh" => construct_layer_tanh
                 "Gemm" => construct_layer_gemm
                 "Flatten" => construct_layer_flatten
                 "Constant" => construct_layer_constant
@@ -92,6 +94,11 @@ module NNLoader
                 "Mul" => construct_layer_mul
                 "ReduceSum" => construct_layer_reducesum
                 "Div" => construct_layer_div
+                "Pow" => construct_layer_pow
+                "BatchNormalization" => construct_layer_batch_normalization
+                "ConvTranspose" => construct_layer_conv_transpose
+                "Dropout" => construct_layer_dropout
+                "Upsample" => construct_layer_upsample
                 _ => error("Unknown operation $(node.op_type)")
             end)(net_type, node.name, inputs, node.output, layer_inputs...;params...)
         catch e
