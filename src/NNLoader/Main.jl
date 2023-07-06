@@ -70,7 +70,7 @@ module NNLoader
                 println("Skipping constant")
                 continue
             end
-            print(keys(node_map))
+            # print(keys(node_map))
             node_map[node.name] = process_graph_node(net_type, node, initializer_map)
         end
         all_inputs = [i.name for i in graph.input]

@@ -40,7 +40,7 @@ module Internal
     Shapes are not always just integer vectors, e.g. ["batch_size", 1, 1] is also valid.
     """
     function extract_shape(tensor_shape_proto_dims::AbstractVector{<:var"TensorShapeProto.Dimension"})
-        dims = []  # not only int, but can also be string e.g. "batch_size"
+        dims = []  # not only int, but can also be string e.g. "batch_size" or "unk_156" (which also allows for batch propagation)
         for i in eachindex(tensor_shape_proto_dims)
             # TODO: there has to be a better way!
             push!(dims, tensor_shape_proto_dims[i].value.value)
