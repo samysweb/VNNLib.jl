@@ -17,7 +17,11 @@ function tensor_to_array(tensor :: TensorProto)
     if tensor_dtype == Int(onnx.var"TensorProto.DataType".FLOAT)
         # Float32 https://github.com/onnx/onnx/blob/fb80e3ade84e9f406711aa41b9f3665753158371/onnx/mapping.py#L13
         # TODO(steuber): check if dimension direction correct
-        return reshape(reinterpret(Float32, tensor.raw_data),Tuple(reverse(dims)))
+        if length(tensor.float_data) > 0
+            return reshape(tensor.float_data,Tuple(reverse(dims)))
+        else
+            return reshape(reinterpret(Float32, tensor.raw_data),Tuple(reverse(dims)))
+        end
     else
         error("TensorProto.data_type $(tensor_dtype) is not supported")
     end
