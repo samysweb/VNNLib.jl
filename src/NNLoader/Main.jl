@@ -50,7 +50,7 @@ module NNLoader
     end
             
 
-    function load_network_dict(net_type::Type{<:NetworkType},filename::String;return_graph=false)
+    function load_network_dict(net_type::Type{<:NetworkType},filename::String;return_graph=false, verbosity=0)
         onnx_proto_model = open(filename,"r") do f
             input = ProtoDecoder(f)
             return decode(input, onnx.ModelProto)
@@ -71,27 +71,32 @@ module NNLoader
                 continue
             end
             # print(keys(node_map))
-            node_map[node.name] = process_graph_node(net_type, node, initializer_map)
+            node_map[node.name] = process_graph_node(net_type, node, initializer_map, verbosity=verbosity)
         end
         all_inputs = [i.name for i in graph.input]
         inputs = [i.name for i in graph.input if !haskey(initializer_map,i.name)]
         outputs = [o.name for o in graph.output if !in(o.name, all_inputs)]
 
-        print(inputs)
-        print(outputs)
+        println("Network inputs: ", inputs)
+        println("Network outputs: ", outputs)
 
         input_shape = get_input_shape([i for i in graph.input if !haskey(initializer_map,i.name)])
         output_shape = get_output_shape([o for o in graph.output if !in(o.name, all_inputs)])
         return construct_network(net_type, inputs, outputs, node_map, input_shape, output_shape)
     end
 
-    function process_graph_node(net_type::Type{<:NetworkType}, node :: NodeProto, initializer_map)
+    function process_graph_node(net_type::Type{<:NetworkType}, node :: NodeProto, initializer_map; verbosity=0)
         layer_inputs = []
         for input in node.input
             if haskey(initializer_map,input)
-                push!(layer_inputs,
-                    tensor_to_array(initializer_map[input])
-                )
+                try
+                    push!(layer_inputs,
+                        tensor_to_array(initializer_map[input])
+                    )
+                catch e
+                    display(stacktrace(catch_backtrace()))
+                    error("Error while processing initializer $input:\n$e\nfull initializer: $(initializer_map[input])")
+                end
             else
                 push!(layer_inputs, DynamicInput)
             end
@@ -119,7 +124,10 @@ module NNLoader
             end
             params[Symbol(attribute.name)] = value
         end
+        # inputs should only represent the inputs that are fed through the layer at runtime!
+        # ONNX also defines some weights as inputs, we store them in layer_inputs as they are fixed at runtime (their values are stored in the initializer_map)
         inputs = [i for i in node.input if !haskey(initializer_map,i)]
+        verbosity > 0 && println("node.name: $(node.name), inputs: $inputs, node.output: $(node.output)\n\tlayer_inputs: (len $(length(layer_inputs))) $(layer_inputs)\n\tparams: $(params)")
         try
             return (@match node.op_type begin
                 "Sub" => construct_layer_sub
@@ -153,6 +161,7 @@ module NNLoader
                 _ => error("Unknown operation $(node.op_type)")
             end)(net_type, node.name, inputs, node.output, layer_inputs...;params...)
         catch e
+            display(stacktrace(catch_backtrace()))
             error("Error while processing node $(node.name) of type $(node.op_type): $(e)\nFull Node: $(node)")
         end
     end
