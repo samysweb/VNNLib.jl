@@ -70,6 +70,16 @@ struct VNNLibTanh{T} <: VNNLibLayer{T}
     end
 end
 
+struct VNNLibSoftmax{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    axis::Int
+    function VNNLibSoftmax{T}(name::String, inputs::Vector{String}, outputs::Vector{String}; axis=-1) where T<:Real
+        return new{T}(name, inputs, outputs, axis)
+    end
+end
+
 struct VNNLibFlatten{T} <: VNNLibLayer{T}
     name::String
     inputs::Vector{String}
@@ -92,6 +102,13 @@ struct VNNLibReshape{T} <: VNNLibLayer{T}
     inputs::Vector{String}
     outputs::Vector{String}
     shape
+end
+
+struct VNNLibTranspose{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    perm  # permutation of dimensions
 end
 
 struct VNNLibSplit{T} <: VNNLibLayer{T}
@@ -121,6 +138,13 @@ struct VNNLibGather{T} <: VNNLibLayer{T}
     axes
 end
 
+struct VNNLibSqueeze{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    axes
+end
+
 struct VNNLibConv{T} <: VNNLibLayer{T}
     name::String
     inputs::Vector{String}
@@ -130,6 +154,19 @@ struct VNNLibConv{T} <: VNNLibLayer{T}
     auto_pad
     dilations
     group
+    kernel_shape
+    pads
+    strides
+end
+
+struct VNNLibAveragePool{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    auto_pad
+    ceil_mode
+    count_include_pad
+    dilations
     kernel_shape
     pads
     strides
@@ -200,6 +237,31 @@ struct VNNLibConvTranspose{T} <: VNNLibLayer{T}
     ouput_shape
     pads
     strides
+end
+
+struct VNNLibLSTM{T} <: VNNLibLayer{T}
+    # has possibility to represent bi-directional LSTM via num_directions=2
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    # ONNX Inputs
+    # TODO: are shapes reversed because of Julia?
+    W  # weight tensor for gates num_directions × 4*hidden_size × input_size
+    R  # weight tensor for recurrent connections num_directions × 4*hidden_size × hidden_size
+    b  # bias tensor for input gate *and* recurrent connections num_directions × 8*hidden_size
+    sequence_lens 
+    initial_h
+    initial_c
+    P  # weight tensor for peepholes num_directions × 3*hidden_size
+    # ONNX attributes
+    activation_alpha
+    activation_beta 
+    activations
+    clip
+    direction
+    hidden_size
+    input_forget
+    layout
 end
 
 struct VNNLibDropout{T} <: VNNLibLayer{T}

@@ -128,14 +128,18 @@ module NNLoader
                 "Relu" => construct_layer_relu
                 "Sigmoid" => construct_layer_sigmoid
                 "Tanh" => construct_layer_tanh
+                "Softmax" => construct_layer_softmax
                 "Gemm" => construct_layer_gemm
                 "Flatten" => construct_layer_flatten
                 "Constant" => construct_layer_constant
                 "Reshape" => construct_layer_reshape
+                "Transpose" => construct_layer_transpose
                 "Split" => construct_layer_split
                 "Slice" => construct_layer_slice
                 "Gather" => construct_layer_gather
+                "Squeeze" => construct_layer_squeeze
                 "Conv" => construct_layer_conv
+                "AveragePool" => construct_layer_average_pool
                 "Concat" => construct_layer_concat
                 "Mul" => construct_layer_mul
                 "ReduceSum" => construct_layer_reducesum
@@ -143,6 +147,7 @@ module NNLoader
                 "Pow" => construct_layer_pow
                 "BatchNormalization" => construct_layer_batch_normalization
                 "ConvTranspose" => construct_layer_conv_transpose
+                "LSTM" => construct_layer_lstm
                 "Dropout" => construct_layer_dropout
                 "Upsample" => construct_layer_upsample
                 _ => error("Unknown operation $(node.op_type)")

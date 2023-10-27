@@ -31,6 +31,11 @@ function construct_layer_tanh(::Type{<:NetworkType}, name, inputs, outputs, data
     throw("Not implemented")
 end
 
+function construct_layer_softmax(::Type{<:NetworkType}, name, inputs, outputs, data; axis=-1)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
 function construct_layer_flatten(::Type{<:NetworkType}, name, inputs, outputs, data;axis=1)
     @assert data == DynamicInput
     throw("Not implemented")
@@ -42,6 +47,9 @@ end
 function construct_layer_reshape(::Type{<:NetworkType}, name, inputs, outputs, data, shape)
     throw("Not implemented")
 end
+function construct_layer_transpose(::Type{<:NetworkType}, name, inputs, outputs, data; perm=nothing)
+    throw("Not implemented")
+end
 function construct_layer_split(::Type{<:NetworkType}, name, inputs, outputs, data, split; axis=0, num_outputs=nothing)
     throw("Not implemented")
 end
@@ -51,8 +59,15 @@ end
 function construct_layer_gather(::Type{<:NetworkType}, name, inputs, outputs, data, indices; axis=0)
     throw("Not implemented")
 end
+function construct_layer_squeeze(::Type{<:NetworkType}, name, inputs, outputs, data, axes)
+    throw("Not implemented")
+end
 function construct_layer_conv(::Type{<:NetworkType}, name, inputs, outputs, data, weights, bias;
     auto_pad="NOTSET", dilations=nothing, group=1, kernel_shape=nothing, pads=nothing, strides=nothing)
+    throw("Not implemented")
+end
+function construct_layer_average_pool(::Type{<:NetworkType}, name, inputs, outputs, data;
+    auto_pad="NOTSET", ceil_mode=0, count_include_pad=0, dilations=nothing, kernel_shape=nothing, pads=nothing, strides=nothing)
     throw("Not implemented")
 end
 function construct_layer_concat(::Type{<:NetworkType}, name, inputs, outputs, data...;axis=nothing)
@@ -80,6 +95,12 @@ end
 
 function construct_layer_conv_transpose(::Type{<:NetworkType}, name, inputs, outputs, data, weights, bias;
     auto_pad="NOTSET", dilations=nothing, group=1, kernel_shape=nothing, output_padding=nothing, output_shape=nothing, pads=nothing, strides=nothing)
+    throw("Not implemented")
+end
+
+function construct_layer_lstm(::Type{<:NetworkType}, name, inputs, outputs, data, W_ih, W_hh, bias=nothing, sequence_lens=nothing, 
+    initial_h=nothing, initial_c=nothing, P=nothing; activation_alpha=nothing, activation_beta=nothing, activations=nothing, clip=nothing, 
+    direction="forward", hidden_size=-1, input_forget=0, layout=0)
     throw("Not implemented")
 end
 
@@ -145,6 +166,12 @@ function construct_layer_tanh(::Type{VNNLibNetworkConstructor}, name, inputs, ou
     return VNNLibTanh{Float64}(name, inputs, outputs)  
 end
 
+function construct_layer_softmax(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; axis=-1)
+    @assert data == DynamicInput
+    return VNNLibSoftmax{Float64}(name, inputs, outputs, axis=axis)
+    
+end
+
 function construct_layer_flatten(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data;axis=1)
     @assert data == DynamicInput
     return VNNLibFlatten{Float64}(name, inputs, outputs, axis)
@@ -158,6 +185,11 @@ end
 function construct_layer_reshape(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, shape)
     @assert data == DynamicInput
     return VNNLibReshape{Float64}(name, inputs, outputs, shape)
+end
+
+function construct_layer_transpose(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; perm=nothing)
+    @assert data == DynamicInput
+    return VNNLibTranspose{Float64}(name, inputs, outputs, perm)
 end
 
 function construct_layer_split(net_type::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, split; axis=0, num_outputs=nothing)
@@ -182,9 +214,19 @@ function construct_layer_gather(::Type{VNNLibNetworkConstructor}, name, inputs, 
     return VNNLibGather{Float64}(name, inputs, outputs, indices, axis)
 end
 
+function construct_layer_squeeze(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, axes)
+    @assert data == DynamicInput
+    return VNNLibSqueeze{Float64}(name, inputs, outputs, axes)
+end
+
 function construct_layer_conv(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, weights, bias;
     auto_pad="NOTSET", dilations=nothing, group=1, kernel_shape=nothing, pads=nothing, strides=nothing)
     return VNNLibConv{Float64}(name, inputs, outputs, weights, bias, auto_pad, dilations, group, kernel_shape, pads, strides)
+end
+
+function construct_layer_average_pool(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data;
+    auto_pad="NOTSET", ceil_mode=0, count_include_pad=0, dilations=nothing, kernel_shape=nothing, pads=nothing, strides=nothing)
+    return VNNLibAveragePool{Float64}(name, inputs, outputs, auto_pad, ceil_mode, count_include_pad, dilations, kernel_shape, pads, strides)
 end
 
 function construct_layer_concat(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data...;axis=nothing)
@@ -225,6 +267,16 @@ function construct_layer_conv_transpose(::Type{VNNLibNetworkConstructor}, name, 
     println("constructing convT!")
     @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
     return VNNLibConvTranspose{Float64}(name, inputs, outputs, weights, bias, auto_pad, dilations, group, kernel_shape, output_padding, output_shape, pads, strides)
+end
+
+function construct_layer_lstm(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, W_ih, W_hh, bias=nothing, sequence_lens=nothing, 
+    initial_h=nothing, initial_c=nothing, P=nothing; activation_alpha=nothing, activation_beta=nothing, activations=nothing, clip=nothing, 
+    direction="forward", hidden_size=-1, input_forget=0, layout=0)
+    @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
+    # although hidden_size is a keyword argument, it has no default value and therefore must be set!
+    @assert hidden_size >= 0 "hidden_size must be set!"
+    return VNNLibLSTM{Float64}(name, inputs, outputs, W_ih, W_hh, bias, sequence_lens, initial_h, initial_c, P, activation_alpha, activation_beta, activations, 
+                        clip, direction, hidden_size, input_forget, layout)
 end
 
 function construct_layer_dropout(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; ratio=nothing, training_mode=false)
