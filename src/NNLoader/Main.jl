@@ -125,8 +125,9 @@ module NNLoader
         for i in all_input_names
             if i ∉ all_initializer_names && i ∉ all_output_names
                 @assert isnothing(network_input) "Multiple network inputs found: $network_input and $i"
+                println("Found input $i")
                 network_input = i
-                break
+                # break
             end
         end
         input_map = Dict(i.name => i for i in graph.input)
@@ -169,12 +170,21 @@ module NNLoader
                 push!(layers,(:relu,nothing,nothing))
             elseif op == "Gemm"
                 @assert length(cur_node.input) == 3 "Gemm node $cur_node has more than 3 inputs"
-                init = init_map[cur_node.input[1]]
-                weight = tensor_to_array(init)
-                init = init_map[cur_node.input[2]]
-                bias = tensor_to_array(init)
-                bias = ensure_one_dim(bias)
-                push!(layers,(:bias,weight',bias))
+                if haskey(init_map, cur_node.input[1])
+                    init = init_map[cur_node.input[1]]
+                    weight = tensor_to_array(init)
+                    init = init_map[cur_node.input[2]]
+                    bias = tensor_to_array(init)
+                    bias = ensure_one_dim(bias)
+                    push!(layers,(:gemm,weight,bias))
+                else
+                    init = init_map[cur_node.input[2]]
+                    weight = tensor_to_array(init)
+                    init = init_map[cur_node.input[3]]
+                    bias = tensor_to_array(init)
+                    bias = ensure_one_dim(bias)
+                    push!(layers,(:gemm,weight',bias))
+                end
             else
                 error("Operation $op is not supported")
             end
