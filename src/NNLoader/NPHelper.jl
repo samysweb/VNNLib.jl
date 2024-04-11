@@ -22,6 +22,14 @@ function tensor_to_array(tensor :: TensorProto)
         else
             return reshape(reinterpret(Float32, tensor.raw_data),Tuple(reverse(dims)))
         end
+    elseif tensor_dtype == Int(onnx.var"TensorProto.DataType".DOUBLE)
+        # Float64 https://github.com/onnx/onnx/blob/fb80e3ade84e9f406711aa41b9f3665753158371/onnx/mapping.py#L13
+        # TODO(steuber): check if dimension direction correct
+        if length(tensor.double_data) > 0
+            return reshape(tensor.double_data,Tuple(reverse(dims)))
+        else
+            return reshape(reinterpret(Float64, tensor.raw_data),Tuple(reverse(dims)))
+        end
     else
         error("TensorProto.data_type $(tensor_dtype) is not supported")
     end
