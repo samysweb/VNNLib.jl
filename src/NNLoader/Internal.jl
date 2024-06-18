@@ -30,7 +30,7 @@ module Internal
             # not data in designated field, need to look for data stored in raw format
             data = reinterpret(dtype, tensor.raw_data)
         else
-            data = dtype_field
+            data = tensor_dtype_field
         end
 
         return reshape(data, Tuple(reverse(tensor.dims)))
