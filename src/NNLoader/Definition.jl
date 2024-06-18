@@ -52,6 +52,16 @@ struct VNNLibReLU{T} <: VNNLibLayer{T}
     end
 end
 
+struct VNNLibLeakyReLU{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    α
+    function VNNLibLeakyReLU{T}(name :: String, inputs :: Vector{String}, outputs :: Vector{String}, α) where T<:Real
+        return new{T}(name, inputs, outputs, α)
+    end
+end
+
 struct VNNLibSigmoid{T} <: VNNLibLayer{T}
     name::String
     inputs::Vector{String}
@@ -77,6 +87,42 @@ struct VNNLibSoftmax{T} <: VNNLibLayer{T}
     axis::Int
     function VNNLibSoftmax{T}(name::String, inputs::Vector{String}, outputs::Vector{String}; axis=-1) where T<:Real
         return new{T}(name, inputs, outputs, axis)
+    end
+end
+
+struct VNNLibFloor{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    function VNNLibFloor{T}(name::String, inputs::Vector{String}, outputs::Vector{String}) where T<:Real
+        return new{T}(name, inputs, outputs)
+    end
+end
+
+struct VNNLibCos{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    function VNNLibCos{T}(name::String, inputs::Vector{String}, outputs::Vector{String}) where T<:Real
+        return new{T}(name, inputs, outputs)
+    end
+end
+
+struct VNNLibSin{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    function VNNLibSin{T}(name::String, inputs::Vector{String}, outputs::Vector{String}) where T<:Real
+        return new{T}(name, inputs, outputs)
+    end
+end
+
+struct VNNLibSign{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    function VNNLibSign{T}(name::String, inputs::Vector{String}, outputs::Vector{String}) where T<:Real
+        return new{T}(name, inputs, outputs)
     end
 end
 
@@ -145,6 +191,22 @@ struct VNNLibSqueeze{T} <: VNNLibLayer{T}
     axes
 end
 
+struct VNNLibUnsqueeze{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    axes
+end
+
+struct VNNLibPad{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    mode
+    pads
+    value
+end
+
 struct VNNLibConv{T} <: VNNLibLayer{T}
     name::String
     inputs::Vector{String}
@@ -172,6 +234,19 @@ struct VNNLibAveragePool{T} <: VNNLibLayer{T}
     strides
 end
 
+struct VNNLibMaxPool{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    auto_pad
+    ceil_mode
+    dilations
+    kernel_shape
+    pads
+    storage_order
+    strides
+end
+
 struct VNNLibConcat{T} <: VNNLibLayer{T}
     name::String
     inputs::Vector{String}
@@ -187,7 +262,27 @@ struct VNNLibMul{T} <: VNNLibLayer{T}
     outputs::Vector{String}
 end
 
+struct VNNLibMulConst{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    c
+end
+
 struct VNNLibDiv{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+end
+
+struct VNNLibDivConst{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    c
+end
+
+struct VNNLibNeg{T} <: VNNLibLayer{T} 
     name::String
     inputs::Vector{String}
     outputs::Vector{String}
@@ -278,4 +373,22 @@ struct VNNLibUpsample{T} <: VNNLibLayer{T}
     outputs::Vector{String}
     scales
     mode
+end
+
+struct VNNLibResize{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    antialias
+    axes
+    coordinate_transformation_mode
+    cubic_coeff_a
+    exclude_outside
+    extrapolate_value
+    keep_aspect_ratio_policy
+    mode
+    nearest_mode
+    roi
+    scales
+    sizes
 end

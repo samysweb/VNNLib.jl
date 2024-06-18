@@ -21,6 +21,11 @@ function construct_layer_relu(::Type{<:NetworkType}, name,  inputs, outputs, dat
     throw("Not implemented")
 end
 
+function construct_layer_leaky_relu(::Type{<:NetworkType}, name,  inputs, outputs, data; alpha=0.01)
+    @assert data == DynamicInput
+    throw("Not implemented")
+end
+
 function construct_layer_sigmoid(::Type{<:NetworkType}, name, inputs, outputs, data)
     @assert data == DynamicInput
     throw("Not implemented")    
@@ -31,7 +36,27 @@ function construct_layer_tanh(::Type{<:NetworkType}, name, inputs, outputs, data
     throw("Not implemented")
 end
 
+function construct_layer_sign(::Type{<:NetworkType}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    throw("Not implemented")    
+end
+
 function construct_layer_softmax(::Type{<:NetworkType}, name, inputs, outputs, data; axis=-1)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
+function construct_layer_floor(::Type{<:NetworkType}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
+function construct_layer_cos(::Type{<:NetworkType}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
+function construct_layer_sin(::Type{<:NetworkType}, name, inputs, outputs, data)
     @assert data == DynamicInput
     throw("not implemented")
 end
@@ -62,6 +87,13 @@ end
 function construct_layer_squeeze(::Type{<:NetworkType}, name, inputs, outputs, data, axes)
     throw("Not implemented")
 end
+function construct_layer_unsqueeze(::Type{<:NetworkType}, name, inputs, outputs, data, axes)
+    throw("not implemented")
+end
+function construct_layer_pad(::Type{<:NetworkType}, name, inputs, outputs, data; mode="constant", pads=nothing, value=0.)
+    @assert !isnothing(pads) "pads is a required argument!"
+    throw("Not implemented")
+end
 function construct_layer_conv(::Type{<:NetworkType}, name, inputs, outputs, data, weights, bias;
     auto_pad="NOTSET", dilations=nothing, group=1, kernel_shape=nothing, pads=nothing, strides=nothing)
     throw("Not implemented")
@@ -70,13 +102,19 @@ function construct_layer_average_pool(::Type{<:NetworkType}, name, inputs, outpu
     auto_pad="NOTSET", ceil_mode=0, count_include_pad=0, dilations=nothing, kernel_shape=nothing, pads=nothing, strides=nothing)
     throw("Not implemented")
 end
+function construct_layer_max_pool(::Type{<:NetworkType}, name, inputs, outputs, data;
+    auto_pad="NOTSET", ceil_mode=0, dilations=nothing, kernel_shape=nothing, pads=nothing, storage_order=0, strides=nothing)
+    throw("Not implemented")
+end
 function construct_layer_concat(::Type{<:NetworkType}, name, inputs, outputs, data...;axis=nothing)
     throw("Not implemented")
 end
 function construct_layer_mul(::Type{<:NetworkType}, name, inputs, outputs, A, B)
     throw("Not implemented")
 end
-
+function construct_layer_neg(::Type{<:NetworkType}, name, inputs, outputs, data)
+    throw("Not implemented")
+end
 function construct_layer_reducesum(::Type{<:NetworkType}, name, inputs, outputs, data; axes=nothing, keepdims=1, noop_with_empty_axes=0)
     throw("Not implemented")
 end
@@ -112,6 +150,13 @@ end
 function construct_layer_upsample(::Type{<:NetworkType}, name, inputs, outputs, data, scales; mode="nearest")
     @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
     println("Constructing Upsample: data = $data, scales = $scales")
+    throw("Not implemented")
+end
+
+function construct_layer_resize(::Type{<:NetworkType}, name, inputs, outputs, data, roi, scales, sizes; antialias=0, axes=nothing, 
+    coordinate_transformation_mode="half_pixel", cubic_coeff_a=-0.75, exclude_outside=0, extrapolation_value=0., keep_aspect_ratio_policy="stretch",
+    mode="nearest", nearest_mode="round_prefer_floor")
+    @assert data == DynamicInput "Expected Dynamic input for data, but got $data"
     throw("Not implemented")
 end
 
@@ -156,6 +201,11 @@ function construct_layer_relu(::Type{VNNLibNetworkConstructor}, name, inputs, ou
     return VNNLibReLU{Float64}(name, inputs, outputs)
 end
 
+function construct_layer_leaky_relu(::Type{VNNLibNetworkConstructor}, name,  inputs, outputs, data; alpha=0.01)
+    @assert data == DynamicInput
+    return VNNLibLeakyReLU{Float64}(name, inputs, outputs, alpha)
+end
+
 function construct_layer_sigmoid(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
     @assert data == DynamicInput
     return VNNLibSigmoid{Float64}(name, inputs, outputs)  
@@ -169,7 +219,26 @@ end
 function construct_layer_softmax(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; axis=-1)
     @assert data == DynamicInput
     return VNNLibSoftmax{Float64}(name, inputs, outputs, axis=axis)
-    
+end
+
+function construct_layer_floor(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    return VNNLibFloor{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_cos(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    return VNNLibCos{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_sin(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    return VNNLibSin{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_sign(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    return VNNLibSign{Float64}(name, inputs, outputs)
 end
 
 function construct_layer_flatten(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data;axis=1)
@@ -219,7 +288,18 @@ function construct_layer_squeeze(::Type{VNNLibNetworkConstructor}, name, inputs,
     return VNNLibSqueeze{Float64}(name, inputs, outputs, axes)
 end
 
-function construct_layer_conv(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, weights, bias;
+function construct_layer_unsqueeze(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, axes)
+    @assert data == DynamicInput
+    return VNNLibUnsqueeze{Float64}(name, inputs, outputs, axes)    
+end
+
+function construct_layer_pad(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; mode="constant", pads=nothing, value=0.)
+    @assert data == DynamicInput
+    @assert !isnothing(pads) "pads required!"
+    return VNNLibPad{Float64}(name, inputs, outputs, mode, pads, value)
+end
+
+function construct_layer_conv(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, weights, bias=0.;
     auto_pad="NOTSET", dilations=nothing, group=1, kernel_shape=nothing, pads=nothing, strides=nothing)
     return VNNLibConv{Float64}(name, inputs, outputs, weights, bias, auto_pad, dilations, group, kernel_shape, pads, strides)
 end
@@ -229,15 +309,34 @@ function construct_layer_average_pool(::Type{VNNLibNetworkConstructor}, name, in
     return VNNLibAveragePool{Float64}(name, inputs, outputs, auto_pad, ceil_mode, count_include_pad, dilations, kernel_shape, pads, strides)
 end
 
+function construct_layer_max_pool(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data;
+    auto_pad="NOTSET", ceil_mode=0, dilations=nothing, kernel_shape=nothing, pads=nothing, storage_order=0, strides=nothing)
+    return VNNLibMaxPool{Float64}(name, inputs, outputs, auto_pad, ceil_mode, dilations, kernel_shape, pads, storage_order, strides)
+end
+
 function construct_layer_concat(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data...;axis=nothing)
     @assert !isnothing(axis) "Concatenation layer requires axis"
     return VNNLibConcat{Float64}(name, inputs, outputs, data, axis)
 end
 
-function construct_layer_mul(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, A, B)
+function construct_layer_mul(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, A::Type{DynamicInput}, B::Type{DynamicInput})
     @assert A == DynamicInput
     @assert B == DynamicInput
     return VNNLibMul{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_mul(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, A::Type{DynamicInput}, B)
+    println("node $name: mul constant")
+    return VNNLibMulConst{Float64}(name, inputs, outputs, B)
+end
+
+function construct_layer_mul(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, A, B::Type{DynamicInput})
+    println("node $name: mul constant")
+    return VNNLibMulConst{Float64}(name, inputs, outputs, A)
+end
+
+function construct_layer_neg(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    return VNNLibNeg{Float64}(name, inputs, outputs)
 end
 
 function construct_layer_reducesum(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; axes=nothing, keepdims=1, noop_with_empty_axes=0)
@@ -245,10 +344,20 @@ function construct_layer_reducesum(::Type{VNNLibNetworkConstructor}, name, input
     return VNNLibReduceSum{Float64}(name, inputs, outputs, axes, keepdims, noop_with_empty_axes)
 end
 
-function construct_layer_div(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, A, B)
+function construct_layer_div(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, A::Type{DynamicInput}, B::Type{DynamicInput})
     @assert A == DynamicInput
     @assert B == DynamicInput
     return VNNLibDiv{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_div(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, A::Type{DynamicInput}, B)
+    println("node $name: div const")
+    return VNNLibDivConst{Float64}(name, inputs, outputs, B)
+end
+
+function construct_layer_div(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, A, B::Type{DynamicInput})
+    println("node $name: div const")
+    return VNNLibDivConst{Float64}(name, inputs, outputs, A)
 end
 
 function construct_layer_pow(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, A, B)
@@ -288,7 +397,17 @@ function construct_layer_upsample(::Type{VNNLibNetworkConstructor}, name, inputs
     @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
     println("Constructing Upsample: data = $data, scales = $scales")
     return VNNLibUpsample{Float64}(name, inputs, outputs, scales, mode)
-    
+end
+
+function construct_layer_resize(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, roi=nothing, scales=nothing, sizes=nothing; antialias=0, axes=nothing, 
+    coordinate_transformation_mode="half_pixel", cubic_coeff_a=-0.75, exclude_outside=0, extrapolation_value=0., keep_aspect_ratio_policy="stretch",
+    mode="nearest", nearest_mode="round_prefer_floor")
+    @assert data == DynamicInput "Expected Dynamic input for data, but got $data"
+    @assert !isnothing(scales) || !isnothing(sizes) "Resize layer requires either scales or sizes"
+    @assert isnothing(scales) || isnothing(sizes) "Resize layer requires either scales or sizes, not both"
+    println("Constructing Resize: data = $data, roi = $roi, scales = $scales, sizes = $sizes")
+    return VNNLibResize{Float64}(name, inputs, outputs, antialias, axes, coordinate_transformation_mode, cubic_coeff_a, exclude_outside, 
+                                 extrapolation_value, keep_aspect_ratio_policy, mode, nearest_mode, roi, scales, sizes)
 end
 
 function construct_network(::Type{VNNLibNetworkConstructor}, inputs, outputs, nodes, input_shape, output_shape)

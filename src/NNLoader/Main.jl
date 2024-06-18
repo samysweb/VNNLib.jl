@@ -134,9 +134,14 @@ module NNLoader
                 "Add" => construct_layer_add
                 "MatMul" => construct_layer_matmul
                 "Relu" => construct_layer_relu
+                "LeakyRelu" => construct_layer_leaky_relu
                 "Sigmoid" => construct_layer_sigmoid
                 "Tanh" => construct_layer_tanh
+                "Sign" => construct_layer_sign
                 "Softmax" => construct_layer_softmax
+                "Floor" => construct_layer_floor
+                "Sin" => construct_layer_sin
+                "Cos" => construct_layer_cos
                 "Gemm" => construct_layer_gemm
                 "Flatten" => construct_layer_flatten
                 "Constant" => construct_layer_constant
@@ -146,10 +151,14 @@ module NNLoader
                 "Slice" => construct_layer_slice
                 "Gather" => construct_layer_gather
                 "Squeeze" => construct_layer_squeeze
+                "Unsqueeze" => construct_layer_unsqueeze
+                "Pad" => construct_layer_pad
                 "Conv" => construct_layer_conv
                 "AveragePool" => construct_layer_average_pool
+                "MaxPool" => construct_layer_max_pool
                 "Concat" => construct_layer_concat
                 "Mul" => construct_layer_mul
+                "Neg" => construct_layer_neg
                 "ReduceSum" => construct_layer_reducesum
                 "Div" => construct_layer_div
                 "Pow" => construct_layer_pow
@@ -158,6 +167,7 @@ module NNLoader
                 "LSTM" => construct_layer_lstm
                 "Dropout" => construct_layer_dropout
                 "Upsample" => construct_layer_upsample
+                "Resize" => construct_layer_resize
                 _ => error("Unknown operation $(node.op_type)")
             end)(net_type, node.name, inputs, node.output, layer_inputs...;params...)
         catch e
