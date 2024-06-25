@@ -60,6 +60,9 @@ module Internal
             return parse_data(tensor, Float64, tensor.double_data)
         elseif tensor_dtype == Int(onnx.var"TensorProto.DataType".INT64)
             return parse_data(tensor, Int64, tensor.int64_data)
+        elseif tensor_dtype == Int(onnx.var"TensorProto.DataType".BOOL)
+            # can directly use reinterpret, as there is no separate bool field, so it has to be stored as raw data
+            return reshape(reinterpret(Bool, tensor.raw_data), Tuple(reverse(tensor.dims)))
         else
             error("TensorProto.data_type $(tensor_dtype) is not yet supported")
         end
