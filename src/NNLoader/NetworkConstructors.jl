@@ -142,7 +142,10 @@ function construct_layer_lstm(::Type{<:NetworkType}, name, inputs, outputs, data
     throw("Not implemented")
 end
 
-function construct_layer_dropout(::Type{<:NetworkType}, name, inputs, outputs, data; ratio=nothing, training_mode=false)
+"""
+We use version 13 of the ONNX standard, since this is the vgg16 benchmark is the only one with dropout layer and is uses this version.
+"""
+function construct_layer_dropout(::Type{<:NetworkType}, name, inputs, outputs, data, ratio=0.5, training_mode=false)
     @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
     throw("Not implemented")
 end
@@ -388,7 +391,7 @@ function construct_layer_lstm(::Type{VNNLibNetworkConstructor}, name, inputs, ou
                         clip, direction, hidden_size, input_forget, layout)
 end
 
-function construct_layer_dropout(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; ratio=nothing, training_mode=false)
+function construct_layer_dropout(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data, ratio=0.5, training_mode=false)
     @assert data == DynamicInput "Expected DynamicInput for data, but got $data"
     return VNNLibDropout{Float64}(name, inputs, outputs, ratio, training_mode)
 end
