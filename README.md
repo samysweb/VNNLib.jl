@@ -67,8 +67,8 @@ The structure of formulas is described through the AST definitions in `src/AST/D
 
 To add a new operator, you need to
 1. add a new type `struct YourType{T} <: VNNLibLayer{T} ... end` (see the already defined types in `Definition.jl`)
-2. add constructors `construct_layer_yourlayer(N, name, inputs, outputs, <list of inputs>; <list of attributes>)`
+2. add constructors `construct_layer_yourlayer(N, name, inputs, outputs, <list of inputs>; <list of attributes>)` (see constructors in `NetworkConstructors.jl`)
     1. `<list of inputs>` are the inputs as defined in the onnx specification. They are provided as positional arguments to the constructor. (Remember, Julia also allows to set default values for positional arguments allowing to model the optional inputs in the onnx specification)
     2. `<list of attributes>` are the attributes as defined in the onnx specification. They are provided as **keyword** arguments to the constructor
-3. register your constructor in the switch-statement in `Main.jl`.
 
+3. register your constructor in the switch-statement in `Main.jl`.
