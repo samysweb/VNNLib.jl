@@ -67,7 +67,7 @@ module NNLoader
         node_map = Dict()
         for node in graph.node
             if node.op_type == "Constant"
-                println("Skipping constant")
+                #println("Skipping constant")
                 continue
             end
             # print(keys(node_map))
@@ -77,8 +77,8 @@ module NNLoader
         inputs = [i.name for i in graph.input if !haskey(initializer_map,i.name)]
         outputs = [o.name for o in graph.output if !in(o.name, all_inputs)]
 
-        println("Network inputs: ", inputs)
-        println("Network outputs: ", outputs)
+        #println("Network inputs: ", inputs)
+        #println("Network outputs: ", outputs)
 
         input_shape = get_input_shape([i for i in graph.input if !haskey(initializer_map,i.name)])
         output_shape = get_output_shape([o for o in graph.output if !in(o.name, all_inputs)])
