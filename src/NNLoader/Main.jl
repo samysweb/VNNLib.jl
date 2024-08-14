@@ -39,6 +39,9 @@ module NNLoader
             elseif op == :matmul
                 @assert !isnothing(weight) "Weight is not nothing for matmul layer"
                 @assert isnothing(bias) "Bias is nothing for matmul layer"
+                if !isnothing(next_bias)
+                    next_bias = weight * next_bias
+                end
                 if !isnothing(next_weight)
                     next_weight = weight * next_weight
                 else
