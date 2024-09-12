@@ -189,7 +189,8 @@ module NNLoader
                     push!(layers,(:gemm,weight',bias))
                 end
             else
-                error("Operation $op is not supported")
+                println("WARNING: Operation $op is not supported")
+                println("WE ARE IGNORING THIS OPERATION -- IF YOU DO NOT KNOW WHAT YOU ARE DOING THIS MAY BE UNSOUND!")
             end
             @assert length(cur_node.output) == 1 "Node $cur_node has more than one output"
             cur_input_name = cur_node.output[1]
