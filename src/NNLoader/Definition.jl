@@ -11,8 +11,8 @@ struct VNNLibNetwork{T<:Real}
     inputs :: Vector{String}
     outputs :: Vector{String}
     nodes :: Dict{String, VNNLibLayer{T}}
-    input_shape :: AbstractVector
-    output_shape :: AbstractVector
+    input_shapes :: Dict{String, AbstractVector}
+    output_shapes :: Dict{String, AbstractVector}
 end
 
 struct VNNLibAdd{T} <: VNNLibLayer{T}

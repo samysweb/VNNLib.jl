@@ -32,19 +32,13 @@ module NNLoader
     end
 
 
-    function get_input_shape(inputs::AbstractVector{ValueInfoProto})
-        @assert length(inputs) == 1 "Only models with a single input are supported! (got $inputs)"
-        input_node = inputs[1]
-    
+    function get_input_shape(input_node::ValueInfoProto)   
         tensor_shape_proto_dims = input_node.var"#type".value.value.shape.dim
         return extract_shape(tensor_shape_proto_dims)
     end
 
 
-    function get_output_shape(outputs::AbstractVector{ValueInfoProto})
-        @assert length(outputs) == 1 "Only models with a single output are supported! (got $outputs)"
-    
-        output_node = outputs[1]
+    function get_output_shape(output_node::ValueInfoProto)
         tensor_shape_proto_dims = output_node.var"#type".value.value.shape.dim
         return extract_shape(tensor_shape_proto_dims)
     end
@@ -77,12 +71,18 @@ module NNLoader
         inputs = [i.name for i in graph.input if !haskey(initializer_map,i.name)]
         outputs = [o.name for o in graph.output if !in(o.name, all_inputs)]
 
-        #println("Network inputs: ", inputs)
-        #println("Network outputs: ", outputs)
+        input_shapes = [get_input_shape(i) for i in graph.input if !haskey(initializer_map,i.name)]
+        output_shapes = [get_output_shape(o) for o in graph.output if !in(o.name, all_inputs)]
 
-        input_shape = get_input_shape([i for i in graph.input if !haskey(initializer_map,i.name)])
-        output_shape = get_output_shape([o for o in graph.output if !in(o.name, all_inputs)])
-        return construct_network(net_type, inputs, outputs, node_map, input_shape, output_shape)
+        input_shapes_dict = Dict(inputs .=> input_shapes)
+        output_shapes_dict = Dict(outputs .=> output_shapes)
+
+        if verbosity > 0
+            println("Network inputs: ", inputs, " with shapes: ", input_shapes)
+            println("Network outputs: ", outputs, " with shapes: ", output_shapes)
+        end
+
+        return construct_network(net_type, inputs, outputs, node_map, input_shapes_dict, output_shapes_dict)
     end
 
     function process_graph_node(net_type::Type{<:NetworkType}, node :: NodeProto, initializer_map; verbosity=0)
