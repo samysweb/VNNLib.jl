@@ -44,6 +44,22 @@ module NNLoader
     end
             
 
+    """
+    Loads a network from an ONNX file. Parsing is done according to the provided `NetworkType`.
+
+    The ONNX file is parsed according to `construct_layer_{layer_name}(::Type{NetworkType}, ...)` functions defined for this type.
+
+    args:
+    - `net_type::Type{<:NetworkType}`: Type of the network to construct, must be a subtype of `NetworkType`.
+    - `filename::String`: Path to the ONNX file.
+
+    kwargs:
+    - `return_graph::Bool`: If true, returns the ONNX graph instead of the constructed network.
+    - `verbosity::Int`: Level of verbosity for logging. Default is 0 (no logging).
+
+    returns:
+    - `Network`: A constructed network of type `net_type` with inputs, outputs, and nodes.
+    """
     function load_network_dict(net_type::Type{<:NetworkType},filename::String;return_graph=false, verbosity=0)
         onnx_proto_model = open(filename,"r") do f
             input = ProtoDecoder(f)
