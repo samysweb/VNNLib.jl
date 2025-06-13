@@ -61,7 +61,19 @@ Once this is the case, you can use `ast_to_lp` to obtain the LP representation f
 The structure of formulas is described through the AST definitions in `src/AST/Definition.jl`
 
 
-# Contribute
+# NN Loader
+
+To load an ONNX network using a loader type `MyOnnxType`:
+```julia
+using VNNLib
+const NNL = VNNLib.NNLoader
+
+nodes, input_nodes, output_nodes, input_shape, output_shape = NNL.load_network_dict(MyOnnxType, "path/to/model.onnx")
+```
+
+There is an implementation for the `NNL.VnnLibNetworkConstructor` type that you can use to load simple networks.
+
+For more complicated networks, you have to extend the type or implement methods for a new type on your own.
 
 ## Adding a new Operator
 
