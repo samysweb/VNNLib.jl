@@ -126,6 +126,84 @@ struct VNNLibSign{T} <: VNNLibLayer{T}
     end
 end
 
+struct VNNLibExp{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    function VNNLibExp{T}(name::String, inputs::Vector{String}, outputs::Vector{String}) where T<:Real
+        return new{T}(name, inputs, outputs)
+    end
+end
+
+struct VNNLibSqrt{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    function VNNLibSqrt{T}(name::String, inputs::Vector{String}, outputs::Vector{String}) where T<:Real
+        return new{T}(name, inputs, outputs)
+    end
+end
+
+struct VNNLibAbs{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    function VNNLibAbs{T}(name::String, inputs::Vector{String}, outputs::Vector{String}) where T<:Real
+        return new{T}(name, inputs, outputs)
+    end
+end
+
+struct VNNLibAcos{T} <: VNNLibLayer{T} 
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    function VNNLibAcos{T}(name::String, inputs::Vector{String}, outputs::Vector{String}) where T<:Real
+        return new{T}(name, inputs, outputs)
+    end
+end
+
+struct VNNLibHardSigmoid{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    alpha
+    beta
+    function VNNLibHardSigmoid{T}(name :: String, inputs :: Vector{String}, outputs :: Vector{String}, alpha, beta) where T<:Real
+        return new{T}(name, inputs, outputs, alpha, beta)
+    end
+end
+
+struct VNNLibHardSwish{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    alpha
+    beta
+    function VNNLibHardSwish{T}(name :: String, inputs :: Vector{String}, outputs :: Vector{String}, alpha, beta) where T<:Real
+        return new{T}(name, inputs, outputs, alpha, beta)
+    end
+end
+
+struct VNNLibELU{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    alpha
+    function VNNLibELU{T}(name :: String, inputs :: Vector{String}, outputs :: Vector{String}, alpha) where T<:Real
+        return new{T}(name, inputs, outputs, alpha)
+    end
+end
+
+struct VNNLibGELU{T} <: VNNLibLayer{T}
+    name::String
+    inputs::Vector{String}
+    outputs::Vector{String}
+    approximate
+    function VNNLibGELU{T}(name :: String, inputs :: Vector{String}, outputs :: Vector{String}, approximate) where T<:Real
+        return new{T}(name, inputs, outputs, approximate)
+    end
+end
+
 struct VNNLibFlatten{T} <: VNNLibLayer{T}
     name::String
     inputs::Vector{String}

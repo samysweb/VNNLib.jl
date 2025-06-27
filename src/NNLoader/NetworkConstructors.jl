@@ -61,6 +61,46 @@ function construct_layer_sin(::Type{<:NetworkType}, name, inputs, outputs, data)
     throw("not implemented")
 end
 
+function construct_layer_sqrt(::Type{<:NetworkType}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
+function construct_layer_exp(::Type{<:NetworkType}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
+function construct_layer_elu(::Type{<:NetworkType}, name, inputs, outputs, data; alpha=1.0)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
+function construct_layer_gelu(::Type{<:NetworkType}, name, inputs, outputs, data; approximate=nothing)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
+function construct_layer_abs(::Type{<:NetworkType}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
+function construct_layer_acos(::Type{<:NetworkType}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
+function construct_layer_hard_sigmoid(::Type{<:NetworkType}, name, inputs, outputs, data; alpha=0.2, beta=0.5)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
+function construct_layer_hard_swish(::Type{<:NetworkType}, name, inputs, outputs, data; alpha=1/6, beta=0.5)
+    @assert data == DynamicInput
+    throw("not implemented")
+end
+
 function construct_layer_flatten(::Type{<:NetworkType}, name, inputs, outputs, data;axis=1)
     @assert data == DynamicInput
     throw("Not implemented")
@@ -242,6 +282,46 @@ end
 function construct_layer_sign(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
     @assert data == DynamicInput
     return VNNLibSign{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_sqrt(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    return VNNLibSqrt{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_exp(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    return VNNLibExp{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_elu(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; alpha=1.0)
+    @assert data == DynamicInput
+    return VNNLibELU{Float64}(name, inputs, outputs, alpha)
+end
+
+function construct_layer_gelu(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; approximate=nothing)
+    @assert data == DynamicInput
+    return VNNLibGELU{Float64}(name, inputs, outputs, approximate)
+end
+
+function construct_layer_abs(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    return VNNLibAbs{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_acos(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data)
+    @assert data == DynamicInput
+    return VNNLibAcos{Float64}(name, inputs, outputs)
+end
+
+function construct_layer_hard_sigmoid(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; alpha=0.2, beta=0.5)
+    @assert data == DynamicInput
+    return VNNLibHardSigmoid{Float64}(name, inputs, outputs, alpha, beta)
+end
+
+function construct_layer_hard_swish(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data; alpha=1/6, beta=0.5)
+    @assert data == DynamicInput
+    return VNNLibHardSwish{Float64}(name, inputs, outputs, alpha, beta)
 end
 
 function construct_layer_flatten(::Type{VNNLibNetworkConstructor}, name, inputs, outputs, data;axis=1)
