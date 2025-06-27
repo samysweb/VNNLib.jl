@@ -124,7 +124,7 @@ module NNLoader
             elseif attribute.var"#type"==onnx.var"AttributeProto.AttributeType".INT
                 value = attribute.i
             elseif attribute.var"#type"==onnx.var"AttributeProto.AttributeType".STRING
-                value = attribute.s
+                value = String(attribute.s)  # attribute.s is a byte array, convert to String
             elseif attribute.var"#type"==onnx.var"AttributeProto.AttributeType".TENSOR
                 value = tensor_to_array(attribute.t)
             elseif attribute.var"#type"==onnx.var"AttributeProto.AttributeType".FLOATS
@@ -158,6 +158,14 @@ module NNLoader
                 "Floor" => construct_layer_floor
                 "Sin" => construct_layer_sin
                 "Cos" => construct_layer_cos
+                "Sqrt" => construct_layer_sqrt
+                "Exp" => construct_layer_exp
+                "Elu" => construct_layer_elu
+                "Gelu" => construct_layer_gelu
+                "Abs" => construct_layer_abs
+                "Acos" => construct_layer_acos
+                "HardSigmoid" => construct_layer_hard_sigmoid
+                "HardSwish" => construct_layer_hard_swish
                 "Gemm" => construct_layer_gemm
                 "Flatten" => construct_layer_flatten
                 "Constant" => construct_layer_constant
