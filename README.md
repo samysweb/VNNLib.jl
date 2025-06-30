@@ -3,9 +3,9 @@
 [![Run tests](https://github.com/samysweb/VNNLib.jl/actions/workflows/ci.yml/badge.svg?branch=test)](https://github.com/samysweb/VNNLib.jl/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/github/samysweb/VNNLib.jl/branch/test/graph/badge.svg?token=G23F6Z1LH3)](https://codecov.io/github/samysweb/VNNLib.jl)
 
-This library helps with the parsing and processing of properties in the VNN Lib format.
+This library helps with the parsing and processing of properties in VNN Lib and neural networks in ONNX format.
 
-## Basic usage
+# VNNLib Properties
 ```julia
 using VNNLib
 
@@ -61,7 +61,74 @@ Once this is the case, you can use `ast_to_lp` to obtain the LP representation f
 The structure of formulas is described through the AST definitions in `src/AST/Definition.jl`
 
 
-# NN Loader
+# ONNX Loader
+
+
+```Julia
+using VNNLib
+
+model = load_onnx_model("./resources/small_onnx_tests/add_2_inputs.onnx")
+
+model.input_shapes()
+# Dict{String, Tuple{Int64, Int64}} with 2 entries:
+#  "input2" => (5, 1)
+#  "input1" => (5, 1)
+
+model.output_shapes()
+#Dict{String, Tuple{Int64, Int64}} with 1 entry:
+#  "output" => (5, 1)
+
+input_data = Dict("input1" => randn(5,1), "input2" => randn(5,1))
+# also works with an array, if the model has a single input
+compute_outputs(model, input_data)  
+# Dict{String, Matrix{Float64}} with 1 entry:
+#  "output" => [1.73978; -0.782722; … ; -2.16249; -0.83229;;]
+
+compute_output(model, input_data)  # if the model has a single output
+```
+
+## Adding a new Operator
+
+To add support for a new ONNX operator, you need to define the following structs and functions:
+```Julia
+
+struct MyNode{S} <: Node{S}
+    inputs::AbstractVector{S}   # names of inputs intermediate results
+    outputs::AbstractVector{S}  # names of output intermediate results
+    name::S
+    # whatever other attributes you need
+end
+
+# return a Julia function that computes the result of the node
+# given its input
+onnx_node_to_flux_layer(node::MyNode) = x -> ...
+
+function NNL.construct_layer_my_node(::Type{OnnxType}, name, inputs, outputs, <list of inputs>; <list of attributes>)
+    # <list of inputs>: one parameter for each input listed 
+    #                   in the ONNX standard
+    #                   Julia also allows to set default values for
+    #                   positional arguments. These can be used for
+    #                   optional ONNX inputs.
+    # <list of attributes>: one keyword argument for each attribute 
+    #                   listed in the ONNX standard
+
+    # Construct an instance of MyNode
+end
+```
+
+Have a look at the definitions of nodes in `src/OnnxParser/{indexing.jl|linear.jl|nonlinear.jl}` for guidance.
+
+You also need to register your `construct_layer_my_node` implementation in the large case distinction in `src/NNLoader/Main.jl`.
+Just add another case
+```Julia
+"MyNode" => construct_layer_my_node
+```
+
+
+
+## Writing A Custom ONNX Parser
+
+`VNNLib.jl` provides the `OnnxParser` introduced above, but also allows you to create your own ONNX parser.
 
 To load an ONNX network using a loader type `MyOnnxType`:
 ```julia
@@ -72,15 +139,3 @@ nodes, input_nodes, output_nodes, input_shape, output_shape = NNL.load_network_d
 ```
 
 There is an implementation for the `NNL.VnnLibNetworkConstructor` type that you can use to load simple networks.
-
-For more complicated networks, you have to extend the type or implement methods for a new type on your own.
-
-## Adding a new Operator
-
-To add a new operator, you need to
-1. add a new type `struct YourType{T} <: VNNLibLayer{T} ... end` (see the already defined types in `Definition.jl`)
-2. add constructors `construct_layer_yourlayer(N, name, inputs, outputs, <list of inputs>; <list of attributes>)` (see constructors in `NetworkConstructors.jl`)
-    1. `<list of inputs>` are the inputs as defined in the onnx specification. They are provided as positional arguments to the constructor. (Remember, Julia also allows to set default values for positional arguments allowing to model the optional inputs in the onnx specification)
-    2. `<list of attributes>` are the attributes as defined in the onnx specification. They are provided as **keyword** arguments to the constructor
-
-3. register your constructor in the switch-statement in `Main.jl`.
