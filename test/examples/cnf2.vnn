@@ -1,0 +1,20 @@
+
+(declare-const X_0 Real)
+(declare-const X_1 Real)
+(declare-const X_2 Real)
+(declare-const X_3 Real)
+(declare-const X_4 Real)
+
+(declare-const Y_0 Real)
+(declare-const Y_1 Real)
+(declare-const Y_2 Real)
+(declare-const Y_3 Real)
+(declare-const Y_4 Real)
+
+; (A v B) /\ (B v C) <==>  (A /\ B) v B v (A /\ C) v (B /\ C)
+(assert
+    (and 
+        (or (<= Y_0 0.0) (<= Y_1 0.0))
+        (or (<= Y_1 1.0) (<= Y_2 1.0))
+    )
+)

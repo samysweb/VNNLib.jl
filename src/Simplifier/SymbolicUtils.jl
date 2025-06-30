@@ -42,13 +42,18 @@ mul_needs_sorting(f) = x -> SymbolicUtils.is_operation(f)(x) && !issorted(argume
 function sort_mul_args(f, t)
     args = arguments(t)
     if length(args) < 2
-        return similarterm(t, f, args)
+		return maketerm(typeof(t), :call, [f, args...])
+        #return similarterm(t, f, args)
     elseif length(args) == 2
         x, y = args
-        return similarterm(t, f, mul_comp(x,y) ? [x,y] : [y,x])
+		args1 = mul_comp(x,y) ? [x,y] : [y,x]
+		return maketerm(typeof(t), :call, [f, args1...])
+        #return similarterm(t, f, mul_comp(x,y) ? [x,y] : [y,x])
     end
     args = args isa Tuple ? [args...] : args
-    similarterm(t, f, sort(args, lt=mul_comp))
+	args1 = sort(args, lt=mul_comp)
+	return maketerm(typeof(t), :call, [f, args1...])
+    #similarterm(t, f, sort(args, lt=mul_comp))
 end
 
 TIMES_RULES = [
@@ -248,6 +253,17 @@ function prepare_linearization(n :: ASTNode)
 			])
 		)
 	return PassThrough(f)(n)
+end
+
+function debug_wrapper(rule)
+	return x -> begin
+		result = rule(x) 
+		println("applying rule: ", rule)
+		println("input:  ", x)
+		println("output: ", result)
+
+		return result
+	end
 end
 
 function to_dnf(n :: ASTNode)

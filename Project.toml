@@ -10,7 +10,11 @@ Mmap = "a63ad114-7e13-5084-954f-fe012c677804"
 ONNXRunTime = "e034b28e-924e-41b2-b98f-d2bbeb830c6a"
 ProtoBuf = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
 SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
+TermInterface = "8ea1fca8-c5ef-4a55-8b96-4e9afe9c9a3c"
 Tokenize = "0796e94c-ce3b-5d07-9a54-7f471281c624"
+
+[compat]
+TermInterface = "2.0.0"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
