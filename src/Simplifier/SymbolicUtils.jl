@@ -11,7 +11,7 @@ import SymbolicUtils.PassThrough
 
 PLUS_RULES = [
 	@rule(~x::SymbolicUtils.isnotflat(+) => SymbolicUtils.flatten_term(+, ~x))
-	@rule(~x::SymbolicUtils.needs_sorting(+) => SymbolicUtils.sort_args(+, ~x))
+	#@rule(~x::SymbolicUtils.needs_sorting(+) => SymbolicUtils.sort_args(+, ~x))
 	@SymbolicUtils.ordered_acrule(~a::is_literal_number + ~b::is_literal_number => ~a + ~b)
 
 	#@acrule(*(~~x) + *(~β, ~~x) => *(1 + ~β, (~~x)...))
@@ -58,7 +58,7 @@ end
 
 TIMES_RULES = [
 	@rule(~x::SymbolicUtils.isnotflat(*) => SymbolicUtils.flatten_term(*, ~x))
-	@rule(~x::mul_needs_sorting(*) => sort_mul_args(*, ~x))
+	#@rule(~x::mul_needs_sorting(*) => sort_mul_args(*, ~x))
 
 	@SymbolicUtils.ordered_acrule(~a::is_literal_number * ~b::is_literal_number => ~a * ~b)
 	@rule(*(~~x::SymbolicUtils.hasrepeats) => *(SymbolicUtils.merge_repeats(^, ~~x)...))
