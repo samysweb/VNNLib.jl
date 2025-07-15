@@ -23,8 +23,8 @@ struct OnnxNet{S,N1,N2}
     output_dict::Dict{S, S}
     node_prevs::Dict{S, Vector{S}}
     node_nexts::Dict{S, Vector{S}}
-    input_shapes::Dict{S, NTuple{N1,Int}}
-    output_shapes::Dict{S, NTuple{N2,Int}}
+    input_shapes::Dict{S, NTuple{N1,Int64}}
+    output_shapes::Dict{S, NTuple{N2,Int64}}
 end
 
 get_input_names(net::OnnxNet) = collect(keys(net.input_shapes))
