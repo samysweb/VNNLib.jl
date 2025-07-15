@@ -3,6 +3,7 @@ using VNNLib
 
 include("src/Parser/Main.jl")
 include("src/AST/Main.jl")
+include("src/OnnxParser/onnx_tests.jl")
 
 detect_ambiguities(
 	VNNLib;

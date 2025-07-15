@@ -54,10 +54,10 @@ function add_constraint(atom :: ComparisonFormula,  constraint_index, constraint
     constraint_index+=1
     for arg in atom.left.args
         if arg isa Variable
-            constraint_matrix[constraint_index,arg.index[]] = 1.0
+            constraint_matrix[constraint_index,arg.index[]] += 1.0
         elseif arg isa ArithmeticTerm && arg.head == Multiplication
             @assert arg.args[1] isa Constant && arg.args[2] isa Variable
-            constraint_matrix[constraint_index,arg.args[2].index[]] = round_minimize(arg.args[1].value)
+            constraint_matrix[constraint_index,arg.args[2].index[]] += round_minimize(arg.args[1].value)
         elseif arg isa Constant
             constraint_vector[constraint_index] += round_maximize(-arg.value)
         else

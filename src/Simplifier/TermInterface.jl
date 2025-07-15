@@ -1,10 +1,19 @@
 import SymbolicUtils.istree
-import SymbolicUtils.operation
-import SymbolicUtils.arguments
-import SymbolicUtils.similarterm
+import TermInterface.operation
+import TermInterface.arguments
+import TermInterface.maketerm
+import TermInterface.head
+import TermInterface.iscall
 import SymbolicUtils.symtype
 import SymbolicUtils.promote_symtype
 import SymbolicUtils.is_literal_number
+
+
+#head(f::CompositeFormula) = :call
+#children(f::CompositeFormula) = [operation(f); f.args]
+iscall(f::CompositeFormula) = true
+iscall(f::ComparisonFormula) = true
+iscall(f::ArithmeticTerm) = true
 
 istree(f::CompositeFormula) = true
 istree(f::ComparisonFormula) = true
@@ -16,13 +25,15 @@ istree(f::Variable) = false
 istree(f::Constant) = false
 istree(f::BoundConstraint) = false
 
-operation(f::CompositeFormula) = @match f.head begin
-    And => (and)
-    Or => (or)
-    Not => (not)
-    Implies => (implies)
-    Iff => (iff)
-    _ => error("Unknown composite formula $f")
+function operation(f::CompositeFormula)
+    return @match f.head begin
+        And => (and)
+        Or => (or)
+        Not => (not)
+        Implies => (implies)
+        Iff => (iff)
+        _ => error("Unknown composite formula $f")
+    end
 end
 
 function operation(f::ComparisonFormula)
@@ -32,6 +43,7 @@ function operation(f::ComparisonFormula)
         Equal => (==)
     end
 end
+
 function operation(f::ArithmeticTerm)
     return @match f.head begin
         Addition => (+)
@@ -47,11 +59,15 @@ arguments(f :: CompositeFormula) = f.args
 arguments(f :: ComparisonFormula) = [f.left, f.right]
 arguments(f :: ArithmeticTerm) = f.args
 
-function similarterm(f :: ASTNode, head, args)
-    error("Missing function similarterm for $(typeof(f)))")
+function maketerm(T::Type{ASTNode}, callhead, args, type=nothing, metadata=nothing)
+    error("Missing function maketerm for type $T and callhead $(callhead))")
 end
 
-function similarterm(f :: CompositeFormula, head, args)
+function maketerm(::Type{CompositeFormula}, head, args, type=nothing, metadata=nothing)
+    #@assert callhead == :call "Expected a call expression! Got $callhead, args: $args"
+    #head = args[1]
+    #args = args[2:end]
+    
     if head == (and)
         return CompositeFormula(And, args)
     elseif head == (or)
@@ -67,9 +83,9 @@ function similarterm(f :: CompositeFormula, head, args)
     end
 end
 
-similarterm(f :: CompositeFormula, head, args,_) = similarterm(f, head, args)
 
-function similarterm(f :: ComparisonFormula, head, args)
+function maketerm(T::Type{ComparisonFormula}, head, args, type=nothing, metadata=nothing)
+   
     if head == (==)
         return ComparisonFormula(Equal, args[1], args[2])
     elseif head == (<=)
@@ -81,10 +97,9 @@ function similarterm(f :: ComparisonFormula, head, args)
     end
 end
 
-similarterm(f :: ComparisonFormula, head, args,_) = similarterm(f, head, args)
 
-function similarterm(f :: ArithmeticTerm, head, args)
-    args = convert(Vector{Term}, args)
+function maketerm(::Type{ArithmeticTerm}, head, args, type=nothing, metadata=nothing)
+   
     if head == (+)
         return ArithmeticTerm(Addition, args)
     elseif head == (-)
@@ -99,8 +114,6 @@ function similarterm(f :: ArithmeticTerm, head, args)
         error("Unknown arithmetic term $f")
     end
 end
-
-similarterm(f :: ArithmeticTerm, head, args, _) = similarterm(f, head, args)
 
 
 function not_division(x :: Term)
