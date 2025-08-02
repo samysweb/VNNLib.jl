@@ -13,7 +13,8 @@ struct ONNXLinear{S} <: Node{S}
     transpose::Bool
 end
 
-onnx_node_to_flux_layer(node::ONNXLinear) = x -> node.transpose ? node.dense(x')' : node.dense(x)
+# TODO(steuber): Transpose for single dimensional input shape seems to be wrong here?
+onnx_node_to_flux_layer(node::ONNXLinear) = x -> (node.transpose && length(size(x)) > 1 ) ? node.dense(x')' : node.dense(x)
 
 function ONNXLinear(inputs::AbstractVector{S}, outputs::AbstractVector{S}, name::S, W::AbstractMatrix{WN}, b::AbstractVector{BN}; transpose=false, double_precision=false) where {S,WN<:Number,BN<:Number}
     if double_precision
@@ -37,7 +38,7 @@ end
 # TODO: is Type{NNL.DynamicInput} what we really want here?
 function NNL.construct_layer_matmul(::Type{OnnxType}, name, inputs, outputs, x::Type{NNL.DynamicInput}, weight)
     VERBOSE_ONNX[] > 0 && println("Constructing Matmul node: $name with inputs $(inputs) and outputs $(outputs)")
-    return ONNXLinear(inputs, outputs, name, weight, zero(weight[:,1]), double_precision=DOUBLE_PRECISION[])
+    return ONNXLinear(inputs, outputs, name, weight, zero(weight[:,1]), transpose=false, double_precision=DOUBLE_PRECISION[])
 end
 
 function NNL.construct_layer_gemm(::Type{OnnxType}, name, inputs, outputs, A, B, C; alpha=1., beta=1., transA=0, transB=0)

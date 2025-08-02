@@ -196,7 +196,7 @@ function compute_all_outputs(net::OnnxNet{S,N1,N2}, x_dict::Dict{S,<:AbstractArr
         # at this point, we know that all parents of the current node have been visited
         # so all necessary inputs are available
         inputs = collect_inputs(net, node_name, output_data)
-        outputs = onnx_node_to_flux_layer(node)(inputs...)
+        outputs = (onnx_node_to_flux_layer(node))(inputs...)
 
         verbosity > 1 && println("\tinputs: $inputs")
         verbosity > 1 && println("\toutputs: $outputs")
