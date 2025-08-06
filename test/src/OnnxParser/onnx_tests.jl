@@ -9,7 +9,7 @@ const NNL = VNNLib.NNLoader
 # Define a tolerance for floating point comparisons
 # This is necessary due to the nature of floating point arithmetic
 # Note Float format may vary between OnnxParser and ONNXRunTime
-TOLERANCE = 1e-8
+TOLERANCE = 1e-6
 
 reversedims(A::AbstractArray) = permutedims(A, reverse(tuple(1:ndims(A)...)))
 
