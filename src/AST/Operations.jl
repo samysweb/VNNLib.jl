@@ -13,6 +13,7 @@ function and(fs :: T1...) where {T1 <: Formula}
 end
 
 function and_construction(fs)
+	@debug "And Construction for ", fs
 	if fs isa Formula
 		# In case there is only one element in and
 		return fs
@@ -30,6 +31,7 @@ function or(fs :: T1...) where {T1 <: Formula}
 end
 
 function or_construction(fs)
+	@debug "Or Construction for ", fs
 	if fs isa Formula
 		# In case there is only one element in and
 		return fs

@@ -143,26 +143,59 @@ function composite_formula_simplifier()
 	)
 end
 
-function dnf_simplifier()
+function cheap_formula_simplifications()
+	Fixpoint(Prewalk(Chain([
+		@rule (and(~x) => ~x)
+		@rule (or(~x) => ~x)
+		@rule   ((not(~x::_istrue)) => (FalseAtom()))
+		@rule   ((not(~x::_isfalse)) => (TrueAtom()))
+		@rule   (not(implies(~x,~y)) => (and_construction([~x, not(~y)])))
+	])))
+end
+
+function and_or_not_simplification()
 	Chain(
 		[
-			If(x->x.head==Or, Chain([
-				@acrule ((or(or(~~x), ~~y)) => (or_construction([~~x; ~~y])))
-			]))
-			If(x->x.head==And, Chain([
+			If(f -> f isa CompositeFormula && any(x->(x isa CompositeFormula && x.head==And),f.args),
 				@acrule ((and(and(~~x), ~~y)) => (and_construction([~~x; ~~y])))
-				@acrule ((and(or(~~x), ~~y)) => (distribute_or(~~x, ~~y)))
-			]))
-			If(x->x.head==Not,Chain([
-				@rule   ((not(~x::_istrue)) => (FalseAtom()))
-				@rule   ((not(~x::_isfalse)) => (TrueAtom()))
-				@rule   (not(implies(~x,~y)) => (and_construction([~x, not(~y)])))
-			]))
+			),
+			If(f -> f isa CompositeFormula && any(x->(x isa CompositeFormula && x.head==Or),f.args),
+				@acrule ((or(or(~~x), ~~y)) => (or_construction([~~x; ~~y])))
+			)
 		]
 	)
 end
 
-distribute_or(x,y) = or_construction([and_construction(Formula[x1;y]) for x1 in x])
+function dnf_simplifier()
+	Chain(
+		[
+			If(f->(f isa CompositeFormula && (f.head==And && any(x->(x isa CompositeFormula && x.head==Or),f.args))),
+				@rule and(~~x) => distribute_or(~~x)
+			)
+			#Chain([
+			#	@acrule ((and(or(~~x), ~~y)) => (distribute_or(~~x, ~~y)))
+			#]))#,
+			Fixpoint(Postwalk(If(x -> x isa CompositeFormula,
+			Chain([
+				and_or_not_simplification()
+				cheap_formula_simplifications()
+			]))))
+		]
+	)
+end
+
+function distribute_or(xs)
+	# find index of first or component
+	or_index = findfirst(f->(f isa CompositeFormula && f.head==Or), xs)
+	if or_index === nothing
+		return and_construction(xs)
+	end
+	or_part = xs[or_index]
+	# view of array without or part
+	other_parts = @view xs[1:end .!= or_index]
+	# distribute or part over other parts
+	return or_construction([and_construction([f; other_parts...]) for f in or_part.args])
+end
 
 function solve_concrete_atom(f, a :: Constant, b :: Constant)
 	if f(a.value,b.value)
@@ -267,10 +300,16 @@ function debug_wrapper(rule)
 end
 
 function to_dnf(n :: ASTNode)
-	f = Fixpoint(Postwalk(
+	f = Chain([
+		cheap_formula_simplifications(),
+		Fixpoint(Postwalk(
+			If(x -> x isa Formula, and_or_not_simplification())
+		)),
+		Fixpoint(Postwalk(
 			Chain([
-				If(x -> x isa Formula, dnf_simplifier())
+				If(x -> x isa CompositeFormula, dnf_simplifier())
 			])
 		))
+	])
 	return PassThrough(f)(n)
 end

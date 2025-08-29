@@ -7,6 +7,7 @@ using ..Simplifier
 using ..Linearization
 
 function iterate(ast :: ASTNode)
+    @debug "Linearizing AST"
     linearized = prepare_linearization(ast)
     if (linearized.head == And || linearized.head == Or) && length(linearized.args)==1
         linearized = linearized.args[1]
@@ -16,6 +17,7 @@ function iterate(ast :: ASTNode)
     elseif linearized.head == Or && all(map(f->f.head == And && all(isa.(f.args, Atom)), linearized.args))
         return ast_to_lp(linearized.args[1]), (2,linearized)
     else
+        @debug "Performing to_dnf transformation..."
         dnf = to_dnf(linearized)
         if dnf.head == And && length(dnf.args)==1
             dnf = dnf.args[1]
