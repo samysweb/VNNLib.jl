@@ -8,8 +8,12 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 MLStyle = "d8e11817-5142-5d16-987a-aa16d5891078"
 Mmap = "a63ad114-7e13-5084-954f-fe012c677804"
 ProtoBuf = "3349acd9-ac6a-5e09-bcdb-63829b23a429"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 SymbolicUtils = "d1185830-fcd6-423d-90d6-eec64667417b"
 Tokenize = "0796e94c-ce3b-5d07-9a54-7f471281c624"
+
+[compat]
+Statistics = "1.11.1"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
