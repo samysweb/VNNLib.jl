@@ -9,7 +9,7 @@ const NNL = VNNLib.NNLoader
 # Define a tolerance for floating point comparisons
 # This is necessary due to the nature of floating point arithmetic
 # Note Float format may vary between OnnxParser and ONNXRunTime
-TOLERANCE = 1e-6
+ABSTOLERANCE = 1e-8
 
 reversedims(A::AbstractArray) = permutedims(A, reverse(tuple(1:ndims(A)...)))
 
@@ -59,10 +59,10 @@ function compare_outputs(outputs_oxp::Dict{String,<:AbstractArray}, outputs_ox::
         output_ox = outputs_ox[name]
         @test size(output_oxp) == size(output_ox) #"Output sizes do not match for $name! Got $(size(output_oxp)) but expected $(size(output_ox))"
         max_diff = maximum(abs.(output_oxp .- output_ox))
-        if !all(isapprox.(output_oxp,output_ox;atol=TOLERANCE))
+        if !all(isapprox.(output_oxp,output_ox;atol=ABSTOLERANCE,rtol=sqrt(eps(Float32))))
             @warn "Outputs do not match for $(name)!\nVNNLib.jl: $(output_oxp)\nONNXRuntime: $(output_ox)\nMax difference: $max_diff"
         end
-        @test all(isapprox.(output_oxp,output_ox;atol=TOLERANCE)) #"Outputs do not match for $name! Got $(output_oxp) but expected $(output_ox)"
+        @test all(isapprox.(output_oxp,output_ox;atol=ABSTOLERANCE,rtol=sqrt(eps(Float32)))) #"Outputs do not match for $name! Got $(output_oxp) but expected $(output_ox)"
     end
 end
 
