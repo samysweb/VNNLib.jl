@@ -69,12 +69,12 @@ using VNNLib
 
 model = load_onnx_model("./resources/small_onnx_tests/add_2_inputs.onnx")
 
-model.input_shapes()
+model.input_shapes
 # Dict{String, Tuple{Int64, Int64}} with 2 entries:
 #  "input2" => (5, 1)
 #  "input1" => (5, 1)
 
-model.output_shapes()
+model.output_shapes
 #Dict{String, Tuple{Int64, Int64}} with 1 entry:
 #  "output" => (5, 1)
 
