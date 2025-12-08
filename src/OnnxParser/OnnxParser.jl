@@ -26,7 +26,7 @@ include("nodes/indexing.jl")
 
 include("onnx_net.jl")
 
-load_onnx_model(model_path::String) = NNL.load_network_dict(OnnxType, model_path)
+load_onnx_model(model_path::String; verbosity=0) = NNL.load_network_dict(OnnxType, model_path, verbosity=verbosity)
 
 export OnnxType, OnnxNet, set_onnx_verbosity, set_double_precision, get_input_names, get_output_names,
        compute_all_outputs, compute_outputs, compute_output, load_onnx_model
