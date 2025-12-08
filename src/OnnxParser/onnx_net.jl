@@ -69,14 +69,11 @@ function OnnxNet(nodes, start_nodes::VS, final_nodes::VS, input_shape_dict, outp
     end
 
     # sometimes shape info contains strings like "batch"
-    for (k, v) in input_shape_dict
-        input_shape = map(s -> ifelse(typeof(s) <: Integer, s, 1), v)
-        input_shape_dict[k] = input_shape
-    end
-    for (k, v) in output_shape_dict
-        output_shape = map(s -> ifelse(typeof(s) <: Integer, s, 1), v)
-        output_shape_dict[k] = output_shape
-    end
+    input_shapes = map(v -> map(s -> ifelse(typeof(s) <: Integer, s, 1), v), values(input_shape_dict))
+    input_shape_dict = Dict(keys(input_shape_dict) .=> input_shapes)
+
+    output_shapes = map(v -> map(s -> ifelse(typeof(s) <: Integer, s, 1), v), values(output_shape_dict))
+    output_shape_dict = Dict(keys(output_shape_dict) .=> output_shapes)
 
     OnnxNet(start_nodes, final_nodes, node_dict, output_dict, node_prevs, node_nexts, input_shape_dict, output_shape_dict)
 end
