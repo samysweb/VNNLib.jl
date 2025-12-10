@@ -125,6 +125,8 @@ args:
 - `out_dict`: the dictionary mapping output names to their values
 """
 function collect_inputs(net::OnnxNet{S,N1,N2}, node_name::S, out_dict::Dict{S,AN}) where {S,N1,N2,AN}
+    # TODO: How can we return a good error message (e.g. "node $(node_name) expected input $i, but found only $(keys(out_dict))")
+    #       while also having a type stable list?
     [out_dict[i] for i in net.nodes[node_name].inputs]
 end
 
