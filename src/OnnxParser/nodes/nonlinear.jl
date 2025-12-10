@@ -1,5 +1,9 @@
 
 
+############################################################################
+##                          Multiplication                                ##
+############################################################################
+
 struct ONNXMul{S} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}
@@ -52,6 +56,11 @@ function NNL.construct_layer_relu(::Type{OnnxType}, name, inputs, outputs, data)
 end
 
 
+############################################################################
+##                               Sigmoid                                  ##
+############################################################################
+
+
 struct ONNXSigmoid{S} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}
@@ -64,6 +73,11 @@ function NNL.construct_layer_sigmoid(::Type{OnnxType}, name, inputs, outputs, da
     VERBOSE_ONNX[] > 0 && println("Constructing Sigmoid layer: $name")
     return ONNXSigmoid(inputs, outputs, name)
 end
+
+
+############################################################################
+##                                Tanh                                    ##
+############################################################################
 
 
 struct ONNXTanh{S} <: Node{S}
@@ -82,6 +96,10 @@ end
 
 # need to implement sqrt, exp, abs, acos, hard_sigmoid, hard_swish, elu, gelu
 
+############################################################################
+##                             LeakyRelu                                  ##
+############################################################################
+
 struct ONNXLeakyRelu{S,F} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}
@@ -96,6 +114,12 @@ function NNL.construct_layer_leaky_relu(::Type{OnnxType}, name, inputs, outputs,
     return ONNXLeakyRelu(inputs, outputs, name, alpha) 
 end
 
+
+############################################################################
+##                                Sign                                    ##
+############################################################################
+
+
 struct ONNXSign{S} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}
@@ -108,6 +132,12 @@ function NNL.construct_layer_sign(::Type{OnnxType}, name, inputs, outputs, data)
     VERBOSE_ONNX[] > 0 && println("Constructing Sign layer: $name")
     return ONNXSign(inputs, outputs, name)
 end
+
+
+############################################################################
+##                                Sin                                     ##
+############################################################################
+
 
 struct ONNXSin{S} <: Node{S}
     inputs::AbstractVector{S}
@@ -122,6 +152,11 @@ function NNL.construct_layer_sin(::Type{OnnxType}, name, inputs, outputs, data)
     return ONNXSin(inputs, outputs, name)
 end
 
+
+############################################################################
+##                                Cos                                     ##
+############################################################################
+
 struct ONNXCos{S} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}
@@ -134,6 +169,12 @@ function NNL.construct_layer_cos(::Type{OnnxType}, name, inputs, outputs, data)
     VERBOSE_ONNX[] > 0 && println("Constructing Cos layer: $name")
     return ONNXCos(inputs, outputs, name)
 end
+
+
+############################################################################
+##                                Exp                                     ##
+############################################################################
+
 
 struct ONNXExp{S} <: Node{S}
     inputs::AbstractVector{S}
@@ -148,6 +189,11 @@ function NNL.construct_layer_exp(::Type{OnnxType}, name, inputs, outputs, data)
     return ONNXExp(inputs, outputs, name)
 end
 
+
+############################################################################
+##                                Sqrt                                    ##
+############################################################################
+
 struct ONNXSqrt{S} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}
@@ -160,6 +206,11 @@ function NNL.construct_layer_sqrt(::Type{OnnxType}, name, inputs, outputs, data)
     VERBOSE_ONNX[] > 0 && println("Constructing Sqrt layer: $name")
     return ONNXSqrt(inputs, outputs, name)
 end
+
+
+############################################################################
+##                                Abs                                    ##
+############################################################################
 
 struct ONNXAbs{S} <: Node{S}
     inputs::AbstractVector{S}
@@ -174,6 +225,11 @@ function NNL.construct_layer_abs(::Type{OnnxType}, name, inputs, outputs, data)
     return ONNXAbs(inputs, outputs, name)
 end
 
+
+############################################################################
+##                                Acos                                    ##
+############################################################################
+
 struct ONNXAcos{S} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}
@@ -186,6 +242,11 @@ function NNL.construct_layer_acos(::Type{OnnxType}, name, inputs, outputs, data)
     VERBOSE_ONNX[] > 0 && println("Constructing Acos layer: $name")
     return ONNXAcos(inputs, outputs, name)
 end
+
+
+############################################################################
+##                            HardSigmoid                                 ##
+############################################################################
 
 struct ONNXHardSigmoid{S,F} <: Node{S}
     inputs::AbstractVector{S}
@@ -211,6 +272,11 @@ function NNL.construct_layer_hard_sigmoid(::Type{OnnxType}, name, inputs, output
     return ONNXHardSigmoid(inputs, outputs, name, alpha, beta)
 end
 
+
+############################################################################
+##                            HardSwish                                   ##
+############################################################################
+
 struct ONNXHardSwish{S,F} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}
@@ -234,6 +300,11 @@ function NNL.construct_layer_hard_swish(::Type{OnnxType}, name, inputs, outputs,
     return ONNXHardSwish(inputs, outputs, name, alpha, beta)
 end
 
+
+############################################################################
+##                                ELU                                    ##
+############################################################################
+
 struct ONNXElu{S,F} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}
@@ -255,6 +326,11 @@ struct ONNXGelu{S} <: Node{S}
     approximate::S
 end
 
+
+############################################################################
+##                                GeLU                                    ##
+############################################################################
+
 function onnx_node_to_flux_layer(node::ONNXGelu)
     if node.approximate == "none"
         x -> Flux.gelu_erf(x)
@@ -271,6 +347,11 @@ function NNL.construct_layer_gelu(::Type{OnnxType}, name, inputs, outputs, data;
 end
 
 
+############################################################################
+##                              Softmax                                   ##
+############################################################################
+
+
 struct ONNXSoftmax{S} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}
@@ -279,6 +360,11 @@ struct ONNXSoftmax{S} <: Node{S}
 end
 
 onnx_node_to_flux_layer(node::ONNXSoftmax) = x -> Flux.softmax(x, dims=node.axis)
+
+
+############################################################################
+##                              Upsample                                  ##
+############################################################################
 
 
 struct ONNXUpsample{S} <: Node{S}
@@ -301,6 +387,11 @@ function NNL.construct_layer_upsample(::Type{OnnxType}, name, inputs, outputs, d
     scales = reverse(tuple(Integer.(scales)...))
     return ONNXUpsample(inputs, outputs, name, scale=scales)
 end
+
+
+############################################################################
+##                                LSTM                                    ##
+############################################################################
 
 
 # TODO: Maybe better to use Flux here?
