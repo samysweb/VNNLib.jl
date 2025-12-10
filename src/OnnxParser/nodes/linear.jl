@@ -421,3 +421,46 @@ function NNL.construct_layer_batch_normalization(::Type{OnnxType}, name, inputs,
     VERBOSE_ONNX[] > 0 && println("Constructing BatchNormalization node: $name with inputs $(inputs) and outputs $(outputs)")
     return ONNXBatchNorm(inputs, outputs, name, input_mean, scale, B, input_var, ϵ=epsilon, double_precision=DOUBLE_PRECISION[])
 end
+
+
+
+struct ONNXReduceSum{S,N<:Integer} <: Node{S}
+    inputs::AbstractVector{S}
+    outputs::AbstractVector{S}
+    name::S
+    axes::AbstractArray{N}
+    keepdims::Bool
+    noop_with_empty_axes::Bool
+end
+
+# TODO: have a factory method that constructs the function once 
+#       and then the returned function doesn't have that many ifs.
+onnx_node_to_flux_layer(node::ONNXReduceSum) = x -> begin
+    if length(node.axes) == 0 && node.noop_with_empty_axes
+        return x 
+    elseif length(node.axes) == 0 && node.keepdims
+        # reduce over all elements
+        # if dims is an array, Julia keeps dim by default
+        return sum(x, dims=1:ndims(x))
+    elseif length(node.axes) == 0
+        # reduce over all elements and don't keep dim
+        return sum(x)
+    else
+        axes = ndims(x) .- node.axes  # NCHW -> WHCN       
+        y = sum(x, dims=axes)
+
+        if !node.keepdims
+            idx = Tuple(i in axes ? 1 : Colon() for i in 1:ndims(x))
+            y = y[idx...]
+        end
+
+        return y
+    end
+end
+
+islinear(node::ONNXReduceSum) = true
+
+function NNL.construct_layer_reducesum(::Type{OnnxType}, name, inputs, outputs, data, axes=[]; keepdims=1, noop_with_empty_axes=0)
+    @assert all(axes .>= 0) "Only non-negative axes are supported!"
+    return ONNXReduceSum(inputs, outputs, name, axes, (keepdims == 1), (noop_with_empty_axes == 1))
+end
