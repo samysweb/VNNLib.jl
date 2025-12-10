@@ -126,6 +126,39 @@ struct ONNXSlice{S} <: Node{S}
     steps::AbstractArray{<:Integer}
 end
 
+"""
+Calculates slice of tensor x along the specified axes.
+
+The result is x̂, s.t. x̂[:,...,axis,...,:] = x[axis][starts[axis]:steps[axis]:ends[axis]]
+
+args:
+    x - the tensor to slice
+    starts - starting indices, s.t. starts[axis] is the starting index for axis
+    stops - end indices of the slice, s.t. stops[axis] is the end index for axis
+    axes - the axes to slice
+    steps - stepsizes, s.t. steps[axis] are the steps for that axis
+"""
+function my_slice(x::AbstractArray, starts, stops, axes; steps=1)
+    axes = ndims(x) .- axes  # NCHW -> WHCN
+    starts0 = ones(Integer, ndims(x))
+    stops0  = [size(x)...]
+    steps0  = ones(Integer, ndims(x))
+    
+    starts0[axes] .= starts .+ 1  # indexing in onnx is zero-based
+    stops0[axes] .= stops # no addition, since onnx excludes the ends, while julia includes them
+    steps0[axes] .= steps
+    
+    starts0 = clamp.(starts0, zero(starts0),  size(x))
+    stops0 = clamp.(stops0, zero(stops0), size(x))
+    
+    inds = [a:b:c for (a,b,c) in zip(starts0, steps0, stops0)]
+    return x[inds...]
+end
+
+onnx_node_to_flux_layer(node::ONNXSlice) = x -> my_slice(x, node.starts, node.stops, node.axes, steps=node.steps)
+
+islinear(node::ONNXSlice) = true
+
 
 function ONNXSlice(inputs, outputs, name, starts, stops, axes; steps=1)
     @assert all(starts .>= 0) && all(stops .>= 0) "Negative starts or ends are currently not supported! (@ $(Node.name))"
