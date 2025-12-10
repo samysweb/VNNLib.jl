@@ -65,7 +65,7 @@ but Flux needs it in the form of (pad_1_begin, pad_1_end, pad_2_begin, pad_2_end
 """
 function convert_onnx_pad(pad::NTuple{N, <:Integer}) where N   
     half = N ÷ 2
-    return Tuple([ifelse(iseven(i), pad[half + (i ÷ 2)], pad[(i + 1) ÷ 2]) for i in 1:length(pad)])
+    return Tuple([isodd(i) ? pad[half + (i ÷ 2) + 1] : pad[i ÷ 2] for i in 1:length(pad)])
 end
 
 
