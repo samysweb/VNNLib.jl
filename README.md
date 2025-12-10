@@ -5,6 +5,14 @@
 
 This library helps with the parsing and processing of properties in VNN Lib and neural networks in ONNX format.
 
+**Contents**
+- [VNNLib Properties](#vnnlib-properties)
+- [ONNX Loader](#onnx-loader)
+- [ONNX Simplifier](#onnx-simplifier)
+
+
+<br/><br/>
+
 # VNNLib Properties
 ```julia
 using VNNLib
@@ -142,3 +150,30 @@ nodes, input_nodes, output_nodes, input_shape, output_shape = NNL.load_network_d
 ```
 
 There is an implementation for the `NNL.VnnLibNetworkConstructor` type that you can use to load simple networks.
+
+
+# ONNX Simplifier
+
+To make development of NN verifiers easier, we support transforming a general computational graph that was loaded from ONNX into a computational graph that conists solely of
+- `ONNXLinear` (a.k.a. `Dense` layers)
+- `ONNXConcat` layers and
+- the non-linear layers
+
+For each operation `op` that can be represented as a linear transformation, we find `A` and `b` that guarantee
+```
+
+vec(op(x1, x2, ..., xn)) == A * vcat(vec(x1), vec(x2), ..., vec(xn)) + b
+
+```
+
+The following example shows how to apply the simplifier can be applied to a complicated network taken from the NN4Sys benchmark
+from [VNNComp 2023](https://github.com/VNN-COMP/vnncomp2023_benchmarks/blob/main/benchmarks/nn4sys/onnx/mscn_128d.onnx.gz):
+```julia
+model = load_onnx_model("./resources/full_network_tests/mscn_128d.onnx")
+
+# we need a concrete input to infer shapes
+input_data = Dict("modelInput" => randn(14,11,1))
+
+model_dense = net2dense(model, input_data, verbosity=2);
+```
+
