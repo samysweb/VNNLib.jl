@@ -231,6 +231,12 @@ function NNL.construct_layer_split(::Type{OnnxType}, name, inputs, outputs, data
     return ONNXSplit(inputs, outputs, name, axis, isnothing(splits) ? splits : Array(splits), num_outputs)
 end
 
+function NNL.construct_layer_split(ntype::Type{OnnxType}, name, inputs, outputs, data; split=nothing, num_outputs=nothing, axis=1)
+    # in ONNX 18, we have attributes (axis, num_outputs) and inputs (input, split) which corresponds to the method above, but
+    # in ONNX 11, we have attributes (axis, split) and inputs (input) which corresponds to this method
+    return NNL.construct_layer_split(ntype, name, inputs, outputs, data, split, num_outputs=num_outputs, axis=axis)  
+end
+
 
 struct ONNXTranspose{S} <: Node{S}
     inputs::AbstractVector{S}
