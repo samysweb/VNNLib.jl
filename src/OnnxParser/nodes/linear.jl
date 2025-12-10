@@ -460,12 +460,14 @@ end
 
 islinear(node::ONNXReduceSum) = true
 
-function NNL.construct_layer_reducesum(::Type{OnnxType}, name, inputs, outputs, data, axes=[]; keepdims=1, noop_with_empty_axes=0)
+function NNL.construct_layer_reducesum(::Type{OnnxType}, name, inputs, outputs, data, axes; keepdims=1, noop_with_empty_axes=0)
+    # TODO: actually axes=[] is a default value, but if I add the default value here, then Julia cannot precompile the method 
+    # as default values are not part of the method signature --> duplicate signature with the below method!
     @assert all(axes .>= 0) "Only non-negative axes are supported!"
     return ONNXReduceSum(inputs, outputs, name, axes, (keepdims == 1), (noop_with_empty_axes == 1))
 end
 
-function NNL.construct_layer_reducesum(node::Type{OnnxType}, name, inputs, outputs, data, ;axes=[], keepdims=1, noop_with_empty_axes=0)
+function NNL.construct_layer_reducesum(node::Type{OnnxType}, name, inputs, outputs, data; axes=[], keepdims=1, noop_with_empty_axes=0)
     # in ONNX 11, axes is a kwarg, not an arg
     return NNL.construct_layer_reducesum(node, name, inputs, outputs, data, axes, keepdims=keepdims, noop_with_empty_axes=noop_with_empty_axes)
 end
