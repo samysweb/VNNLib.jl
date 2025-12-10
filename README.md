@@ -103,6 +103,9 @@ end
 # given its input
 onnx_node_to_flux_layer(node::MyNode) = x -> ...
 
+# only if your new node is linear - otherwise islinear() returns false by default
+islinear(node::MyNode) = true
+
 function NNL.construct_layer_my_node(::Type{OnnxType}, name, inputs, outputs, <list of inputs>; <list of attributes>)
     # <list of inputs>: one parameter for each input listed 
     #                   in the ONNX standard

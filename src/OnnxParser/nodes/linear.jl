@@ -15,6 +15,8 @@ end
 
 onnx_node_to_flux_layer(node::ONNXLinear) = x -> node.transpose ? node.dense(x')' : node.dense(x)
 
+islinear(node::ONNXLinear) = true
+
 function ONNXLinear(inputs::AbstractVector{S}, outputs::AbstractVector{S}, name::S, W::AbstractMatrix{WN}, b::AbstractVector{BN}; transpose=false, double_precision=false) where {S,WN<:Number,BN<:Number}
     if double_precision
         W = Float64.(W)
@@ -70,6 +72,8 @@ end
 
 onnx_node_to_flux_layer(node::ONNXAddConst) = x -> x .+ node.c
 
+islinear(node::ONNXAddConst) = true
+
 function NNL.construct_layer_add(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXAddConst node: $name with inputs $(inputs) and outputs $(outputs)")
     ONNXAddConst(inputs, outputs, name, b)
@@ -87,6 +91,8 @@ struct ONNXAdd{S} <: Node{S}
 end
 
 onnx_node_to_flux_layer(node::ONNXAdd) = (x, y) -> x .+ y
+
+islinear(node::ONNXAdd) = true
 
 function NNL.construct_layer_add(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b::Type{NNL.DynamicInput})
     # need to specify that both inputs are dynamic inputs to avoid ambiguity with ONNXAddConst constructors
@@ -111,6 +117,8 @@ end
 
 onnx_node_to_flux_layer(node::ONNXSubConst) = x -> ifelse(node.left, x .- node.c, node.c .- x)
 
+islinear(node::ONNXSubConst) = true
+
 function NNL.construct_layer_sub(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSubConst node: $name with inputs $(inputs) and outputs $(outputs)")
     ONNXSubConst(inputs, outputs, name, b, true)
@@ -128,6 +136,8 @@ struct ONNXSub{S} <: Node{S}
 end
 
 onnx_node_to_flux_layer(node::ONNXSub) = (x, y) -> x .- y
+
+islinear(node::ONNXSub) = true
 
 function NNL.construct_layer_sub(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b::Type{NNL.DynamicInput})
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSub node: $name with inputs $(inputs) and outputs $(outputs)")
@@ -148,6 +158,8 @@ struct ONNXMulConst{S} <: Node{S}
 end
 
 onnx_node_to_flux_layer(node::ONNXMulConst) = x -> x .* node.c
+
+islinear(node::ONNXMulConst) = true
 
 function NNL.construct_layer_mul(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSubConst node: $name with inputs $(inputs) and outputs $(outputs)")
@@ -173,6 +185,8 @@ end
 
 onnx_node_to_flux_layer(node::ONNXDivConst) = x -> x ./ node.c
 
+islinear(node::ONNXDivConst) = true
+
 function NNL.construct_layer_div(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXDivConst node: $name with inputs $(inputs) and outputs $(outputs)")
     ONNXDivConst(inputs, outputs, name, b)
@@ -192,6 +206,8 @@ struct ONNXConv{S} <: Node{S}
 end
 
 onnx_node_to_flux_layer(node::ONNXConv) = node.conv
+
+islinear(node::ONNXConv) = true
 
 
 """
@@ -263,6 +279,8 @@ end
 
 onnx_node_to_flux_layer(node::ONNXConvT) = node.convt
 
+islinear(node::ONNXConvT) = true
+
 
 """
 Create a transposed convolution node.
@@ -319,6 +337,8 @@ end
 
 onnx_node_to_flux_layer(node::ONNXAveragePool) = node.avg
 
+islinear(node::ONNXAveragePool) = true
+
 
 function ONNXAveragePool(inputs, outputs, name, window::NTuple; pad=0, stride=window)
     avg = Flux.MeanPool(window, pad=pad, stride=stride)
@@ -368,6 +388,8 @@ struct ONNXBatchNorm{S} <: Node{S}
 end
 
 onnx_node_to_flux_layer(node::ONNXBatchNorm) = node.batchnorm
+
+islinear(node::ONNXBatchNorm) = true
 
 
 function ONNXBatchNorm(inputs, outputs, name, μ, γ, β, σ²; λ=identity, ϵ=1e-5, double_precision=false)

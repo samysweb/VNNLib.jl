@@ -9,6 +9,24 @@
 abstract type Node{S} end
 
 
+"""
+Indicates whether a node represents a linear function, i.e. it can be 
+represented as 
+
+    vec(op(x)) = A*vec(x) + b
+
+for some A and b.
+
+We refer to nodes that require multiple inputs as linear, if 
+
+    vec(op(x₁, x₂, ..., xₙ)) == A * vcat(vec(x₁), vec(x₂), ..., vec(xₙ)) + b
+
+By default, we assume a node is nonlinear.
+Linear nodes need to overrride this function.
+"""
+islinear(n::Node) = false
+
+
 struct DummyInputNode{S} <: Node{S}
     inputs::AbstractVector{S}
     outputs::AbstractVector{S}

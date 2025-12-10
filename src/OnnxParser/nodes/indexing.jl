@@ -15,6 +15,8 @@ onnx_node_to_flux_layer(node::ONNXConcat) = (xs...) -> begin
     cat(xs..., dims=axis)
 end
 
+islinear(node::ONNXConcat) = true
+
 function NNL.construct_layer_concat(::Type{OnnxType}, name, inputs, outputs, data...; axis=nothing)
     @assert !isnothing(axis) "Concatenation layer requires axis!"
     return ONNXConcat(inputs, outputs, name, axis)
@@ -30,6 +32,8 @@ end
 onnx_node_to_flux_layer(node::ONNXReshape) = x -> begin
     reshape(x, node.shape)
 end
+
+islinear(node::ONNXReshape) = true
 
 function NNL.construct_layer_reshape(::Type{OnnxType}, name, inputs, outputs, data, shape)
     # have assertion here instead of type annotation in argument, s.t. we get more meaningful error message
@@ -51,6 +55,8 @@ struct ONNXFlatten{S} <: Node{S}
 end
 
 onnx_node_to_flux_layer(node::ONNXFlatten) = x -> reshape(x, :, size(x)[end])
+
+islinear(node::ONNXFlatten) = true
 
 function NNL.construct_layer_flatten(::Type{OnnxType}, name, inputs, outputs, data; axis=1)
     VERBOSE_ONNX[] > 0 && println("Constructing Flatten layer: $name")
@@ -102,6 +108,8 @@ end
 
 
 onnx_node_to_flux_layer(node::ONNXGather) = x -> my_gather(x, node.inds, node.axis)
+
+islinear(node::ONNXGather) = true
 
 
 function NNL.construct_layer_gather(::Type{OnnxType}, name, inputs, outputs, data, inds; axis=0)
@@ -219,6 +227,8 @@ end
 
 onnx_node_to_flux_layer(node::ONNXSplit) = x -> onnx_split(node, x)
 
+islinear(node::ONNXSplit) = true
+
 
 function NNL.construct_layer_split(::Type{OnnxType}, name, inputs, outputs, data, splits; num_outputs=nothing, axis=1)
     @assert data == NNL.DynamicInput "Split layer requires dynamic input (@ node $(name))"
@@ -247,6 +257,8 @@ end
 
 onnx_node_to_flux_layer(node::ONNXTranspose) = x -> permutedims(x, node.perm)
 
+islinear(node::ONNXTranspose) = true
+
 function NNL.construct_layer_transpose(::Type{OnnxType}, name, inputs, outputs, data; perm=nothing)
     @assert data == NNL.DynamicInput
     VERBOSE_ONNX[] > 0 && println("Constructing Transpose layer: $name (perm = $perm)")
@@ -273,6 +285,8 @@ onnx_node_to_flux_layer(node::ONNXSqueeze) = x -> begin
 
     dropdims(x, dims=Tuple(axes))
 end
+
+islinear(node::ONNXSqueeze) = true
 
 function NNL.construct_layer_squeeze(::Type{OnnxType}, name, inputs, outputs, data, axes)
     @assert data == NNL.DynamicInput
