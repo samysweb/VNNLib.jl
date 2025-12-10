@@ -14,6 +14,29 @@ function NNL.construct_layer_mul(::Type{OnnxType}, name, inputs, outputs, a::Typ
 end
 
 
+############################################################################
+##                              Division                                  ##
+############################################################################
+
+struct ONNXDiv{S} <: Node{S}
+    inputs::AbstractVector{S}
+    outputs::AbstractVector{S}
+    name::S
+end
+
+onnx_node_to_flux_layer(node::ONNXDiv) = (x, y) -> x ./ y
+
+function NNL.construct_layer_div(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b::Type{NNL.DynamicInput})
+    VERBOSE_ONNX[] > 0 && println("Constructing ONNXDivConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    ONNXDiv(inputs, outputs, name)
+end
+
+
+############################################################################
+##                                ReLU                                    ##
+############################################################################
+
+
 # Need to write it as Relu as ReLU is in NeuralVerification and relu is in Flux
 struct ONNXRelu{S} <: Node{S}
     inputs::AbstractVector{S}
