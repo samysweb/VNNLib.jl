@@ -169,7 +169,7 @@ islinear(node::ONNXSlice) = true
 
 
 function ONNXSlice(inputs, outputs, name, starts, stops, axes; steps=1)
-    @assert all(starts .>= 0) && all(stops .>= 0) "Negative starts or ends are currently not supported! (@ $(Node.name))"
+    @assert all(starts .>= 0) && all(stops .>= 0) "Negative starts or ends are currently not supported! (@ $(name))"
     return ONNXSlice(inputs, outputs, name, starts, stops, axes, steps)
 end
 

@@ -409,6 +409,11 @@ end
 
 onnx_node_to_flux_layer(node::ONNXSoftmax) = x -> Flux.softmax(x, dims=node.axis)
 
+function NNL.construct_layer_softmax(::Type{OnnxType}, name, inputs, outputs, data; axis=-1)
+    VERBOSE_ONNX[] > 0 && println("Constructing Softmax layer: $name with axis = $axis")
+    return ONNXSoftmax(inputs, outputs, name, axis)
+end
+
 
 ############################################################################
 ##                              Upsample                                  ##

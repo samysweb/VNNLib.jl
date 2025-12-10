@@ -81,7 +81,12 @@ module NNLoader
                 continue
             end
             # print(keys(node_map))
-            node_map[node.name] = process_graph_node(net_type, node, initializer_map, verbosity=verbosity)
+            name = node.name
+            if isempty(name) || haskey(node_map, name)
+                # if the node name is empty or already exists, we generate a new name
+                name = "node_$(length(node_map)+1)"
+            end
+            node_map[name] = process_graph_node(net_type, node, name, initializer_map, verbosity=verbosity)
         end
         all_inputs = [i.name for i in graph.input]
         inputs = [i.name for i in graph.input if !haskey(initializer_map,i.name)]
@@ -101,7 +106,7 @@ module NNLoader
         return construct_network(net_type, inputs, outputs, node_map, input_shapes_dict, output_shapes_dict)
     end
 
-    function process_graph_node(net_type::Type{<:NetworkType}, node :: NodeProto, initializer_map; verbosity=0)
+    function process_graph_node(net_type::Type{<:NetworkType}, node :: NodeProto, name :: String, initializer_map; verbosity=0)
         layer_inputs = []
         for input in node.input
             if haskey(initializer_map,input)
@@ -143,7 +148,7 @@ module NNLoader
         # inputs should only represent the inputs that are fed through the layer at runtime!
         # ONNX also defines some weights as inputs, we store them in layer_inputs as they are fixed at runtime (their values are stored in the initializer_map)
         inputs = [i for i in node.input if !haskey(initializer_map,i)]
-        verbosity > 0 && println("node.name: $(node.name), inputs: $inputs, node.output: $(node.output)\n\tlayer_inputs: (len $(length(layer_inputs))) $(layer_inputs)\n\tparams: $(params)")
+        verbosity > 0 && println("node.name: $(name), inputs: $inputs, node.output: $(node.output)\n\tlayer_inputs: (len $(length(layer_inputs))) $(layer_inputs)\n\tparams: $(params)")
         try
             return (@match node.op_type begin
                 "Sub" => construct_layer_sub
@@ -193,10 +198,10 @@ module NNLoader
                 "Upsample" => construct_layer_upsample
                 "Resize" => construct_layer_resize
                 _ => error("Unknown operation $(node.op_type)")
-            end)(net_type, node.name, inputs, node.output, layer_inputs...;params...)
+            end)(net_type, name, inputs, node.output, layer_inputs...;params...)
         catch e
             display(stacktrace(catch_backtrace()))
-            error("Error while processing node $(node.name) of type $(node.op_type): $(e)\nFull Node: $(node)")
+            error("Error while processing node $(name) of type $(node.op_type): $(e)\nFull Node: $(node)")
         end
     end
 
