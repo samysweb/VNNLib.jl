@@ -6,7 +6,7 @@ function node2dense(net::OnnxNet{S,N1,N2}, node_name::S, out_dict::Dict{S,AN}; v
     verbosity > 0 && println("[node2dense] input sizes = ", [size(x) for x in xs])
 
     if length(L.outputs) <= 1
-        A, b = affop2mat(OXP.onnx_node_to_flux_layer(L), xs..., batched=batched_linearization(L))
+        A, b = affop2mat(OXP.onnx_node_to_flux_layer(L), xs..., batched=batched_linearization(L), linear_special_case=linear_special_case(L))
 
         if length(xs) > 1
             # For multiple inputs, we first need to concatenate them to a large vector.

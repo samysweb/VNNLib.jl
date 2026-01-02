@@ -14,6 +14,11 @@ struct ONNXLinear{S} <: Node{S}
 end
 
 # TODO(steuber): Transpose for single dimensional input shape seems to be wrong here?
+# TODO(pkern): We should only translate to Dense, when a linear layer is really intended.
+#              For Linear layers, we want the last dimension to be the batch dimension, so transpose doesn't make sense.
+#              If W has shape (m, n) and x has shape (n, b), then we want Wx with shape (m, b) (and crucially, (m,n) * (n,1) for every dim)
+#              For multiplication of two matrices (which MatMul and Gemm can also represent), we need to transpose because 
+#              Flux uses WHCN format.
 onnx_node_to_flux_layer(node::ONNXLinear) = x -> (node.transpose && length(size(x)) > 1 ) ? node.dense(x')' : node.dense(x)
 
 islinear(node::ONNXLinear) = true

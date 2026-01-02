@@ -15,7 +15,7 @@ kwargs:
 returns:
     A, b s.t. vec(op(x)) == A*vec(x) + b
 """
-function affop2mat(op, x; batched=true, verbosity=0)
+function affop2mat(op, x; batched=true, linear_special_case=false, verbosity=0)
     s_in = size(x)
 
     # want x with batch dim, but s_in without batch dim
@@ -29,7 +29,13 @@ function affop2mat(op, x; batched=true, verbosity=0)
     end
     
     # get bias
-    b = op(zero(x))
+    if linear_special_case
+        # need to strip the trailing batch dim, so they are not transposed 
+        # with the actual features
+        b = op(reshape(zero(x), s_in))
+    else
+        b = op(zero(x))
+    end
 
     s_out = size(b)
 
@@ -41,11 +47,14 @@ function affop2mat(op, x; batched=true, verbosity=0)
     else
         n_in = prod(s_in)
         A = zeros(prod(s_out), n_in)
+
+        # again drop batch dim for linear special case
+        s = linear_special_case ? s_in : size(x)
         for i in 1:n_in
             eᵢ = (1:n_in) .== i  # i-th unit basis vector
             
             # build the matrix column by column
-            A[:,i] .= op(reshape(eᵢ, size(x)...))
+            A[:,i] .= op(reshape(eᵢ, s...))
         end
     end
 
@@ -71,7 +80,7 @@ kwargs:
 returns:
     A, b s.t. vec(op(x₁, x₂, ..., xₙ)) == A * vcat(vec(x₁), vec(x₂), ..., vec(xₙ)) + b
 """
-function affop2mat(op, args...; batched=true, verbosity=0)
+function affop2mat(op, args...; batched=true, linear_special_case=false, verbosity=0)
     As = []
     bs = []
     for (i, arg) in enumerate(args)
