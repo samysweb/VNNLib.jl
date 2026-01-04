@@ -68,7 +68,7 @@ function test_original_vs_dense(model_path; verbosity=0)
         max_diff = maximum(abs.(vec(y[on]) .- y_dense[on]))
         max_diff_all = max(max_diff_all, max_diff)
 
-        res = all(isapprox.(y_dense[on], vec(y[on]);atol=SimpleABSTOLERANCE,rtol=sqrt(eps(Float32))))
+        res = all(isapprox.(y_dense[on], vec(y[on]);atol=ABSTOLERANCE,rtol=sqrt(eps(Float32))))
         # res = (vec(y[on]) ≈ y_dense[on])
         correct_all = res & correct_all
 
