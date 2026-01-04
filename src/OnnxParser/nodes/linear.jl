@@ -484,3 +484,35 @@ function NNL.construct_layer_reducesum(node::Type{OnnxType}, name, inputs, outpu
     # in ONNX 11, axes is a kwarg, not an arg
     return NNL.construct_layer_reducesum(node, name, inputs, outputs, data, axes, keepdims=keepdims, noop_with_empty_axes=noop_with_empty_axes)
 end
+
+
+############################################################################
+##                              Upsample                                  ##
+############################################################################
+
+
+struct ONNXUpsample{S} <: Node{S}
+    inputs::AbstractVector{S}
+    outputs::AbstractVector{S}
+    name::S
+    upsampling::Upsample
+end
+
+onnx_node_to_flux_layer(node::ONNXUpsample) = node.upsampling
+
+
+islinear(node::ONNXUpsample) = true
+
+
+function ONNXUpsample(inputs, outputs, name; mode=:nearest, scale=nothing, size=nothing)
+    @assert ~isnothing(scale) || ~isnothing(size) "Either size or scale needs to be set! (constructor of $name)"
+    upsampling = Upsample(mode, scale=scale, size=size)
+    return ONNXUpsample(inputs, outputs, name, upsampling)
+end
+
+function NNL.construct_layer_upsample(::Type{OnnxType}, name, inputs, outputs, data, scales; mode="nearest")
+    @assert data == NNL.DynamicInput "Expected DynamicInput for data, but got $data"
+    # NCHW -> WHCN
+    scales = reverse(tuple(Integer.(scales)...))
+    return ONNXUpsample(inputs, outputs, name, scale=scales)
+end

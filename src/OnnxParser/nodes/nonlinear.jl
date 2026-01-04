@@ -418,33 +418,6 @@ end
 
 
 ############################################################################
-##                              Upsample                                  ##
-############################################################################
-
-
-struct ONNXUpsample{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
-    name::S
-    upsampling::Upsample
-end
-
-
-function ONNXUpsample(inputs, outputs, name; mode=:nearest, scale=nothing, size=nothing)
-    @assert ~isnothing(scale) || ~isnothing(size) "Either size or scale needs to be set! (constructor of $name)"
-    upsampling = Upsample(mode, scale=scale, size=size)
-    return ONNXUpsample(inputs, outputs, name, upsampling)
-end
-
-function NNL.construct_layer_upsample(::Type{OnnxType}, name, inputs, outputs, data, scales; mode="nearest")
-    @assert data == NNL.DynamicInput "Expected DynamicInput for data, but got $data"
-    # NCHW -> WHCN
-    scales = reverse(tuple(Integer.(scales)...))
-    return ONNXUpsample(inputs, outputs, name, scale=scales)
-end
-
-
-############################################################################
 ##                                LSTM                                    ##
 ############################################################################
 
