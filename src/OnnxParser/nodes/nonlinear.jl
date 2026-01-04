@@ -220,6 +220,7 @@ onnx_node_to_flux_layer(node::ONNXPowConstBase) = y -> node.x .^ y
 
 function NNL.construct_layer_pow(::Type{OnnxType}, name, inputs, outputs, x, y::Type{NNL.DynamicInput})
     VERBOSE_ONNX[] > 0 && println("Constructing Pow layer (const base): $name")
+    x = DOUBLE_PRECISION[] ? Float64.(x) : x
     return ONNXPowConstBase(inputs, outputs, name, x)
 end
 
@@ -235,6 +236,7 @@ onnx_node_to_flux_layer(node::ONNXPowConstExp) = x -> x .^ node.y
 
 function NNL.construct_layer_pow(::Type{OnnxType}, name, inputs, outputs, x::Type{NNL.DynamicInput}, y)
     VERBOSE_ONNX[] > 0 && println("Constructing Pow layer (const exp): $name")
+    y = DOUBLE_PRECISION[] ? Float64.(y) : y
     return ONNXPowConstExp(inputs, outputs, name, y)
 end
 

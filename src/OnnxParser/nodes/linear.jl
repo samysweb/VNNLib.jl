@@ -82,11 +82,13 @@ islinear(node::ONNXAddConst) = true
 
 function NNL.construct_layer_add(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXAddConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    b = DOUBLE_PRECISION[] ? Float64.(b) : b
     ONNXAddConst(inputs, outputs, name, b)
 end
 
 function NNL.construct_layer_add(::Type{OnnxType}, name, inputs, outputs, a, b::Type{NNL.DynamicInput})
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXAddConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    a = DOUBLE_PRECISION[] ? Float64.(a) : a
     ONNXAddConst(inputs, outputs, name, a)
 end
 
@@ -127,11 +129,13 @@ islinear(node::ONNXSubConst) = true
 
 function NNL.construct_layer_sub(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSubConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    b = DOUBLE_PRECISION[] ? Float64.(b) : b
     ONNXSubConst(inputs, outputs, name, b, true)
 end
 
 function NNL.construct_layer_sub(::Type{OnnxType}, name, inputs, outputs, a, b::Type{NNL.DynamicInput})
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSubConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    a = DOUBLE_PRECISION[] ? Float64.(a) : a
     ONNXSubConst(inputs, outputs, name, a, false)
 end
 
@@ -169,11 +173,13 @@ islinear(node::ONNXMulConst) = true
 
 function NNL.construct_layer_mul(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSubConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    b = DOUBLE_PRECISION[] ? Float64.(b) : b
     ONNXMulConst(inputs, outputs, name, b)
 end
 
 function NNL.construct_layer_mul(::Type{OnnxType}, name, inputs, outputs, a, b::Type{NNL.DynamicInput})
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSubConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    a = DOUBLE_PRECISION[] ? Float64.(a) : a
     ONNXMulConst(inputs, outputs, name, a)
 end
 
@@ -195,6 +201,7 @@ islinear(node::ONNXDivConst) = true
 
 function NNL.construct_layer_div(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXDivConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    b = DOUBLE_PRECISION[] ? Float64.(b) : b
     ONNXDivConst(inputs, outputs, name, b)
 end
 
