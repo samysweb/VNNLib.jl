@@ -1,10 +1,10 @@
 
 
-struct ONNXConcat{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXConcat{S,VS<:AbstractVector{S},ND<:Integer} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    dim::Integer
+    dim::ND
 end
 
 onnx_node_to_flux_layer(node::ONNXConcat) = (xs...) -> begin 
@@ -22,11 +22,11 @@ function NNL.construct_layer_concat(::Type{OnnxType}, name, inputs, outputs, dat
     return ONNXConcat(inputs, outputs, name, axis)
 end
 
-struct ONNXReshape{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXReshape{S,VS<:AbstractVector{S},NS} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    shape
+    shape::NS
 end
 
 onnx_node_to_flux_layer(node::ONNXReshape) = x -> begin
@@ -47,9 +47,9 @@ function NNL.construct_layer_reshape(::Type{OnnxType}, name, inputs, outputs, da
     return ONNXReshape(inputs, outputs, name, shape)
 end
 
-struct ONNXFlatten{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXFlatten{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     axis::Int
 end
@@ -65,11 +65,11 @@ function NNL.construct_layer_flatten(::Type{OnnxType}, name, inputs, outputs, da
 end
 
 
-struct ONNXGather{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXGather{S,VS<:AbstractVector{S},NI<:Union{Integer,AbstractArray{<:Integer}}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    inds::Union{Int,AbstractArray{Int}}
+    inds::NI
     axis::Int
 end
 
@@ -123,15 +123,15 @@ function NNL.construct_layer_gather(::Type{OnnxType}, name, inputs, outputs, dat
 end
   
 
-struct ONNXSlice{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSlice{S,VS<:AbstractVector{S},VN<:AbstractArray{<:Integer}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    starts::AbstractArray{<:Integer}
+    starts::VN
     # writing ends in Julia is annoying!
-    stops::AbstractArray{<:Integer}
-    axes::AbstractArray{<:Integer}
-    steps::AbstractArray{<:Integer}
+    stops::VN
+    axes::VN
+    steps::VN
 end
 
 """
@@ -179,9 +179,9 @@ function NNL.construct_layer_slice(::Type{OnnxType}, name, inputs, outputs, data
 end
 
 
-struct ONNXSplit{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSplit{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     axis::Int
     splits::Union{Vector{Int}, Nothing}
@@ -248,11 +248,11 @@ function NNL.construct_layer_split(ntype::Type{OnnxType}, name, inputs, outputs,
 end
 
 
-struct ONNXTranspose{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXTranspose{S,VS<:AbstractVector{S},P} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    perm
+    perm::P
 end
 
 onnx_node_to_flux_layer(node::ONNXTranspose) = x -> permutedims(x, node.perm)
@@ -271,12 +271,12 @@ function NNL.construct_layer_transpose(::Type{OnnxType}, name, inputs, outputs, 
     return ONNXTranspose(inputs, outputs, name, perm)
 end
 
-struct ONNXSqueeze{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSqueeze{S,VS<:AbstractVector{S},A} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     # if axes == nothing, then all singleton dimensions will be removed
-    axes
+    axes::A
 end
 
 onnx_node_to_flux_layer(node::ONNXSqueeze) = x -> begin

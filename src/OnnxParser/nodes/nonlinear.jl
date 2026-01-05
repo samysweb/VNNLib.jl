@@ -4,9 +4,9 @@
 ##                          Multiplication                                ##
 ############################################################################
 
-struct ONNXMul{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXMul{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -22,9 +22,9 @@ end
 ##                              Division                                  ##
 ############################################################################
 
-struct ONNXDiv{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXDiv{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -42,9 +42,9 @@ end
 
 
 # Need to write it as Relu as ReLU is in NeuralVerification and relu is in Flux
-struct ONNXRelu{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXRelu{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -61,9 +61,9 @@ end
 ############################################################################
 
 
-struct ONNXSigmoid{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSigmoid{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -80,9 +80,9 @@ end
 ############################################################################
 
 
-struct ONNXTanh{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXTanh{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -100,9 +100,9 @@ end
 ##                             LeakyRelu                                  ##
 ############################################################################
 
-struct ONNXLeakyRelu{S,F} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXLeakyRelu{S,VS<:AbstractVector{S},F} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     alpha::F
 end
@@ -120,9 +120,9 @@ end
 ############################################################################
 
 
-struct ONNXSign{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSign{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -139,9 +139,9 @@ end
 ############################################################################
 
 
-struct ONNXSin{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSin{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -157,9 +157,9 @@ end
 ##                                Cos                                     ##
 ############################################################################
 
-struct ONNXCos{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXCos{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -176,9 +176,9 @@ end
 ############################################################################
 
 
-struct ONNXExp{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXExp{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -195,9 +195,9 @@ end
 ############################################################################
 
 
-struct ONNXPow{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXPow{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S 
 end
 
@@ -209,9 +209,9 @@ function NNL.construct_layer_pow(::Type{OnnxType}, name, inputs, outputs, x::Typ
 end
 
 
-struct ONNXPowConstBase{S,N} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXPowConstBase{S,VS<:AbstractVector{S},N} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S 
     x::N
 end
@@ -225,9 +225,9 @@ function NNL.construct_layer_pow(::Type{OnnxType}, name, inputs, outputs, x, y::
 end
 
 
-struct ONNXPowConstExp{S,N} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXPowConstExp{S,VS<:AbstractVector{S},N} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S 
     y::N
 end
@@ -244,9 +244,9 @@ end
 ##                                Sqrt                                    ##
 ############################################################################
 
-struct ONNXSqrt{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSqrt{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -262,9 +262,9 @@ end
 ##                                Abs                                    ##
 ############################################################################
 
-struct ONNXAbs{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXAbs{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -280,9 +280,9 @@ end
 ##                                Acos                                    ##
 ############################################################################
 
-struct ONNXAcos{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXAcos{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -298,9 +298,9 @@ end
 ##                            HardSigmoid                                 ##
 ############################################################################
 
-struct ONNXHardSigmoid{S,F} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXHardSigmoid{S,VS<:AbstractVector{S},F} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     alpha::F
     beta::F
@@ -327,9 +327,9 @@ end
 ##                            HardSwish                                   ##
 ############################################################################
 
-struct ONNXHardSwish{S,F} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXHardSwish{S,VS<:AbstractVector{S},F} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     alpha::F
     beta::F
@@ -355,9 +355,9 @@ end
 ##                                ELU                                    ##
 ############################################################################
 
-struct ONNXElu{S,F} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXElu{S,VS<:AbstractVector{S},F} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     alpha::F
 end
@@ -369,17 +369,16 @@ function NNL.construct_layer_elu(::Type{OnnxType}, name, inputs, outputs, data; 
     return ONNXElu(inputs, outputs, name, alpha)
 end
 
-struct ONNXGelu{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
-    name::S
-    approximate::S
-end
-
-
 ############################################################################
 ##                                GeLU                                    ##
 ############################################################################
+
+struct ONNXGelu{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
+    name::S
+    approximate::S
+end
 
 function onnx_node_to_flux_layer(node::ONNXGelu)
     if node.approximate == "none"
@@ -402,9 +401,9 @@ end
 ############################################################################
 
 
-struct ONNXSoftmax{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSoftmax{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     axis::Int
 end
@@ -423,14 +422,14 @@ end
 
 
 # TODO: Maybe better to use Flux here?
-struct ONNXLSTMCell{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXLSTMCell{S,VS<:AbstractVector{S},L<:ONNXLinear,T<:Tuple{AbstractArray,AbstractArray}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    linear_ih::ONNXLinear
-    linear_hh::ONNXLinear
+    linear_ih::L
+    linear_hh::L
     # (hidden_state, cell_state)
-    state0::Tuple{AbstractArray, AbstractArray}
+    state0::T
 end
 
 
@@ -449,13 +448,13 @@ function ONNXLSTMCell(inputs, outputs, name, Wih::AbstractArray{<:N}, Whh::Abstr
     return ONNXLSTMCell(inputs, outputs, name, linear_ih, linear_hh, state0)
 end
 
-struct ONNXLSTMLayer{S,AN} <: Node{S}
+struct ONNXLSTMLayer{S,VS<:AbstractVector{S},C<:Flux.LSTMCell,AN,ND<:Integer} <: Node{S}
     # only need LSTMLayer, passing the whole sequence through the unrolling is handled inside the propagation of LSTMLayer
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+    inputs::VS
+    outputs::VS
     name::S
-    cell::Flux.LSTMCell
-    num_directions
+    cell::C
+    num_directions::ND
     # initial state
     h0::AN
     c0::AN

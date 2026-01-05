@@ -170,7 +170,7 @@ returns:
 """
 function compute_all_outputs(net::OnnxNet{S,N1,N2}, x_dict::Dict{S,<:AbstractArray}; verbosity=0) where {S,N1,N2}
     # dictionary mapping output names (not node names!) to their values
-    output_data = Dict{S,AbstractArray}()
+    output_data = Dict{S,AbstractArray}()  # TODO: can we make this type stable?
 
     node_names = collect(keys(net.nodes))
     visit_cnt = Dict(node_names .=> 0)

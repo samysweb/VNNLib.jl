@@ -3,13 +3,13 @@
 ## Dense layer and corresponding ONNX nodes Matmul and Gemm ##
 ##############################################################
 
-struct ONNXLinear{S} <: Node{S}
+struct ONNXLinear{S,VS<:AbstractVector{S},D<:Dense} <: Node{S}
     # vector of identifiers for each input
-    inputs::AbstractVector{S}
+    inputs::VS
     # vector of identifiers for each output
-    outputs::AbstractVector{S}
+    outputs::VS
     name::S
-    dense::Dense
+    dense::D
     transpose::Bool
 end
 
@@ -69,11 +69,11 @@ end
 #######################################################################
 
 
-struct ONNXAddConst{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXAddConst{S,VS<:AbstractVector{S},VN} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    c
+    c::VN
 end
 
 onnx_node_to_flux_layer(node::ONNXAddConst) = x -> x .+ node.c
@@ -92,9 +92,9 @@ function NNL.construct_layer_add(::Type{OnnxType}, name, inputs, outputs, a, b::
     ONNXAddConst(inputs, outputs, name, a)
 end
 
-struct ONNXAdd{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXAdd{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -115,9 +115,9 @@ end
 ############################################################################
 
 
-struct ONNXSubConst{S,C} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSubConst{S,VS<:AbstractVector{S},C} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     c::C
     left::Bool  # if variable is on the left side of the subtraction
@@ -139,9 +139,9 @@ function NNL.construct_layer_sub(::Type{OnnxType}, name, inputs, outputs, a, b::
     ONNXSubConst(inputs, outputs, name, a, false)
 end
 
-struct ONNXSub{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSub{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
@@ -160,11 +160,11 @@ end
 ############################################################################
 
 
-struct ONNXMulConst{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXMulConst{S,VS<:AbstractVector{S},C} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    c
+    c::C
 end
 
 onnx_node_to_flux_layer(node::ONNXMulConst) = x -> x .* node.c
@@ -188,11 +188,11 @@ end
 ##                      Division by Constant                              ##
 ############################################################################
 
-struct ONNXDivConst{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXDivConst{S,VS<:AbstractVector{S},C} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    c
+    c::C
 end
 
 onnx_node_to_flux_layer(node::ONNXDivConst) = x -> x ./ node.c
@@ -211,11 +211,11 @@ end
 #############################################################################
 
 
-struct ONNXConv{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXConv{S,VS<:AbstractVector{S},C<:Conv} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    conv::Conv
+    conv::C
 end
 
 onnx_node_to_flux_layer(node::ONNXConv) = node.conv
@@ -283,11 +283,11 @@ end
 ##################################################################################
 
 
-struct ONNXConvT{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXConvT{S,VS<:AbstractVector{S},C<:ConvTranspose} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    convt::ConvTranspose
+    convt::C
 end
 
 onnx_node_to_flux_layer(node::ONNXConvT) = node.convt
@@ -341,11 +341,11 @@ function NNL.construct_layer_conv_transpose(::Type{OnnxType}, name, inputs, outp
 end
 
 
-struct ONNXAveragePool{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXAveragePool{S,VS<:AbstractVector{S},M<:MeanPool} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    avg::MeanPool
+    avg::M
 end
 
 onnx_node_to_flux_layer(node::ONNXAveragePool) = node.avg
@@ -377,12 +377,12 @@ function NNL.construct_layer_average_pool(::Type{OnnxType}, name, inputs, output
 end
 
 
-struct ONNXDropout{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXDropout{S,VS<:AbstractVector{S},R,M} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    ratio
-    training_mode
+    ratio::R
+    training_mode::M
 end
 
 
@@ -393,11 +393,11 @@ function NNL.construct_layer_dropout(::Type{OnnxType}, name, inputs, outputs, da
 end
 
 
-struct ONNXBatchNorm{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXBatchNorm{S,VS<:AbstractVector{S},B<:BatchNorm} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    batchnorm::BatchNorm
+    batchnorm::B
 end
 
 onnx_node_to_flux_layer(node::ONNXBatchNorm) = node.batchnorm
@@ -437,9 +437,9 @@ end
 
 
 
-struct ONNXReduceSum{S,N<:Integer} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXReduceSum{S,VS<:AbstractVector{S},N<:Integer} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     axes::AbstractArray{N}
     keepdims::Bool
@@ -491,11 +491,11 @@ end
 ############################################################################
 
 
-struct ONNXUpsample{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXUpsample{S,VS<:AbstractVector{S},U<:Upsample} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    upsampling::Upsample
+    upsampling::U
 end
 
 onnx_node_to_flux_layer(node::ONNXUpsample) = node.upsampling
