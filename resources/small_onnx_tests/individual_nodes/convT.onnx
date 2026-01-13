@@ -1,0 +1,25 @@
+pytorch2.6.0:Ÿ
+¬
+input
+convT.weight
+
+convT.biasoutput/convT/ConvTranspose"ConvTranspose*
+	dilations@@ *
+group *
+kernel_shape@@ *
+pads@@@@ *
+strides@@ 
+main_graph*†BconvT.weightJl&t>æwú½¶à½Æ·Ä=&>kÎƒ<ö2‡=5¦=ì¨¾²L>F!6>p”•¾ Q8=Û(,¾†(¾«êÍ¼V]¾V¦.=g\‘> çV½@gñ½Û”›=³W>ÖÃJ>Ÿ›„¾î”F>(D >*B
+convT.biasJÈÄc¾Z
+input
+
+
+
+
+b 
+output
+
+
+
+
+B
