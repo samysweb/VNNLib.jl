@@ -1,7 +1,7 @@
 name = "VNNLib"
 uuid = "286915b0-5841-4eea-9013-d818f395ad8c"
-authors = ["Samuel Teuber <teuber@kit.edu>"]
-version = "0.2.3"
+authors = ["Samuel Teuber <teuber@kit.edu>", "Philipp Kern <philipp.kern@kit.edu>"]
+version = "0.3.0"
 
 [deps]
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"

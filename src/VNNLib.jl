@@ -24,6 +24,10 @@ include("NNLoader/Main.jl")
 
 using .NNLoader
 
+include("OnnxParser/OnnxParser.jl")
+
+using .OnnxParser
+
 function default_labeler(name)
     parts = split(name,"_")
     if length(parts) == 2
@@ -49,6 +53,8 @@ export get_ast, iterate, AST, ast_to_lp
 export Network, Layer, Dense, ReLU
 export load_network
 
-
+# reexport types and functions from OnnxParser
+export OnnxType, OnnxNet, set_onnx_verbosity, set_double_precision, get_input_names, get_output_names,
+       compute_all_outputs, compute_outputs, compute_output, load_onnx_model
 
 end # module VNNLib
