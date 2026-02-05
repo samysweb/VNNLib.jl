@@ -31,10 +31,12 @@ onnx_node_to_flux_layer(node::ONNXReshape) = x -> begin
     reshape(x, node.shape)
 end
 
-function NNL.construct_layer_reshape(::Type{OnnxType}, name, inputs, outputs, data, shape)
+function NNL.construct_layer_reshape(::Type{OnnxType}, name, inputs, outputs, data, shape; allowzero=0)
     # have assertion here instead of type annotation in argument, s.t. we get more meaningful error message
     @assert data == NNL.DynamicInput "Reshape layer requires dynamic input (@ node $(name))"
     VERBOSE_ONNX[] > 0 && println("Constructing Reshape layer: $name (shape = $shape)")
+
+    @assert all(shape .!= 0) "Shapes containing zero are currently not supported! Got shape $(shape)"
 
     # Flux needs WHCN instead of NCHW -> reverse
     # Julia needs : for calculate dim instead of -1 for python
