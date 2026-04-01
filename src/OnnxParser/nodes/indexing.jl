@@ -1,10 +1,10 @@
 
 
-struct ONNXConcat{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXConcat{S,VS<:AbstractVector{S},ND<:Integer} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    dim::Integer
+    dim::ND
 end
 
 onnx_node_to_flux_layer(node::ONNXConcat) = (xs...) -> begin 
@@ -15,21 +15,25 @@ onnx_node_to_flux_layer(node::ONNXConcat) = (xs...) -> begin
     cat(xs..., dims=axis)
 end
 
+islinear(node::ONNXConcat) = true
+
 function NNL.construct_layer_concat(::Type{OnnxType}, name, inputs, outputs, data...; axis=nothing)
     @assert !isnothing(axis) "Concatenation layer requires axis!"
     return ONNXConcat(inputs, outputs, name, axis)
 end
 
-struct ONNXReshape{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXReshape{S,VS<:AbstractVector{S},NS} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    shape
+    shape::NS
 end
 
 onnx_node_to_flux_layer(node::ONNXReshape) = x -> begin
     reshape(x, node.shape)
 end
+
+islinear(node::ONNXReshape) = true
 
 function NNL.construct_layer_reshape(::Type{OnnxType}, name, inputs, outputs, data, shape; allowzero=0)
     # have assertion here instead of type annotation in argument, s.t. we get more meaningful error message
@@ -45,14 +49,16 @@ function NNL.construct_layer_reshape(::Type{OnnxType}, name, inputs, outputs, da
     return ONNXReshape(inputs, outputs, name, shape)
 end
 
-struct ONNXFlatten{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXFlatten{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     axis::Int
 end
 
 onnx_node_to_flux_layer(node::ONNXFlatten) = x -> reshape(x, :, size(x)[end])
+
+islinear(node::ONNXFlatten) = true
 
 function NNL.construct_layer_flatten(::Type{OnnxType}, name, inputs, outputs, data; axis=1)
     VERBOSE_ONNX[] > 0 && println("Constructing Flatten layer: $name")
@@ -61,11 +67,11 @@ function NNL.construct_layer_flatten(::Type{OnnxType}, name, inputs, outputs, da
 end
 
 
-struct ONNXGather{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXGather{S,VS<:AbstractVector{S},NI<:Union{Integer,AbstractArray{<:Integer}}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    inds::Union{Int,AbstractArray{Int}}
+    inds::NI
     axis::Int
 end
 
@@ -105,6 +111,8 @@ end
 
 onnx_node_to_flux_layer(node::ONNXGather) = x -> my_gather(x, node.inds, node.axis)
 
+islinear(node::ONNXGather) = true
+
 
 function NNL.construct_layer_gather(::Type{OnnxType}, name, inputs, outputs, data, inds; axis=0)
     VERBOSE_ONNX[] > 0 && println("Constructing Gather layer: $name (inds = $inds, axis = $axis)")
@@ -117,16 +125,49 @@ function NNL.construct_layer_gather(::Type{OnnxType}, name, inputs, outputs, dat
 end
   
 
-struct ONNXSlice{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSlice{S,VS<:AbstractVector{S},VN<:AbstractArray{<:Integer}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    starts::AbstractArray{<:Integer}
+    starts::VN
     # writing ends in Julia is annoying!
-    stops::AbstractArray{<:Integer}
-    axes::AbstractArray{<:Integer}
-    steps::AbstractArray{<:Integer}
+    stops::VN
+    axes::VN
+    steps::VN
 end
+
+"""
+Calculates slice of tensor x along the specified axes.
+
+The result is x̂, s.t. x̂[:,...,axis,...,:] = x[axis][starts[axis]:steps[axis]:ends[axis]]
+
+args:
+    x - the tensor to slice
+    starts - starting indices, s.t. starts[axis] is the starting index for axis
+    stops - end indices of the slice, s.t. stops[axis] is the end index for axis
+    axes - the axes to slice
+    steps - stepsizes, s.t. steps[axis] are the steps for that axis
+"""
+function my_slice(x::AbstractArray, starts, stops, axes; steps=1)
+    axes = ndims(x) .- axes  # NCHW -> WHCN
+    starts0 = ones(Integer, ndims(x))
+    stops0  = [size(x)...]
+    steps0  = ones(Integer, ndims(x))
+    
+    starts0[axes] .= starts .+ 1  # indexing in onnx is zero-based
+    stops0[axes] .= stops # no addition, since onnx excludes the ends, while julia includes them
+    steps0[axes] .= steps
+    
+    starts0 = clamp.(starts0, zero(starts0),  size(x))
+    stops0 = clamp.(stops0, zero(stops0), size(x))
+    
+    inds = [a:b:c for (a,b,c) in zip(starts0, steps0, stops0)]
+    return x[inds...]
+end
+
+onnx_node_to_flux_layer(node::ONNXSlice) = x -> my_slice(x, node.starts, node.stops, node.axes, steps=node.steps)
+
+islinear(node::ONNXSlice) = true
 
 
 function ONNXSlice(inputs, outputs, name, starts, stops, axes; steps=1)
@@ -140,9 +181,9 @@ function NNL.construct_layer_slice(::Type{OnnxType}, name, inputs, outputs, data
 end
 
 
-struct ONNXSplit{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSplit{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     axis::Int
     splits::Union{Vector{Int}, Nothing}
@@ -188,6 +229,8 @@ end
 
 onnx_node_to_flux_layer(node::ONNXSplit) = x -> onnx_split(node, x)
 
+islinear(node::ONNXSplit) = true
+
 
 function NNL.construct_layer_split(::Type{OnnxType}, name, inputs, outputs, data, splits; num_outputs=nothing, axis=1)
     @assert data == NNL.DynamicInput "Split layer requires dynamic input (@ node $(name))"
@@ -200,15 +243,23 @@ function NNL.construct_layer_split(::Type{OnnxType}, name, inputs, outputs, data
     return ONNXSplit(inputs, outputs, name, axis, isnothing(splits) ? splits : Array(splits), num_outputs)
 end
 
+function NNL.construct_layer_split(ntype::Type{OnnxType}, name, inputs, outputs, data; split=nothing, num_outputs=nothing, axis=1)
+    # in ONNX 18, we have attributes (axis, num_outputs) and inputs (input, split) which corresponds to the method above, but
+    # in ONNX 11, we have attributes (axis, split) and inputs (input) which corresponds to this method
+    return NNL.construct_layer_split(ntype, name, inputs, outputs, data, split, num_outputs=num_outputs, axis=axis)  
+end
 
-struct ONNXTranspose{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+
+struct ONNXTranspose{S,VS<:AbstractVector{S},P} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    perm
+    perm::P
 end
 
 onnx_node_to_flux_layer(node::ONNXTranspose) = x -> permutedims(x, node.perm)
+
+islinear(node::ONNXTranspose) = true
 
 function NNL.construct_layer_transpose(::Type{OnnxType}, name, inputs, outputs, data; perm=nothing)
     @assert data == NNL.DynamicInput
@@ -222,12 +273,12 @@ function NNL.construct_layer_transpose(::Type{OnnxType}, name, inputs, outputs, 
     return ONNXTranspose(inputs, outputs, name, perm)
 end
 
-struct ONNXSqueeze{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSqueeze{S,VS<:AbstractVector{S},A} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     # if axes == nothing, then all singleton dimensions will be removed
-    axes
+    axes::A
 end
 
 onnx_node_to_flux_layer(node::ONNXSqueeze) = x -> begin
@@ -236,6 +287,8 @@ onnx_node_to_flux_layer(node::ONNXSqueeze) = x -> begin
 
     dropdims(x, dims=Tuple(axes))
 end
+
+islinear(node::ONNXSqueeze) = true
 
 function NNL.construct_layer_squeeze(::Type{OnnxType}, name, inputs, outputs, data, axes)
     @assert data == NNL.DynamicInput

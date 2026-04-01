@@ -3,18 +3,25 @@
 ## Dense layer and corresponding ONNX nodes Matmul and Gemm ##
 ##############################################################
 
-struct ONNXLinear{S} <: Node{S}
+struct ONNXLinear{S,VS<:AbstractVector{S},D<:Dense} <: Node{S}
     # vector of identifiers for each input
-    inputs::AbstractVector{S}
+    inputs::VS
     # vector of identifiers for each output
-    outputs::AbstractVector{S}
+    outputs::VS
     name::S
-    dense::Dense
+    dense::D
     transpose::Bool
 end
 
 # TODO(steuber): Transpose for single dimensional input shape seems to be wrong here?
+# TODO(pkern): We should only translate to Dense, when a linear layer is really intended.
+#              For Linear layers, we want the last dimension to be the batch dimension, so transpose doesn't make sense.
+#              If W has shape (m, n) and x has shape (n, b), then we want Wx with shape (m, b) (and crucially, (m,n) * (n,1) for every dim)
+#              For multiplication of two matrices (which MatMul and Gemm can also represent), we need to transpose because 
+#              Flux uses WHCN format.
 onnx_node_to_flux_layer(node::ONNXLinear) = x -> (node.transpose && length(size(x)) > 1 ) ? node.dense(x')' : node.dense(x)
+
+islinear(node::ONNXLinear) = true
 
 function ONNXLinear(inputs::AbstractVector{S}, outputs::AbstractVector{S}, name::S, W::AbstractMatrix{WN}, b::AbstractVector{BN}; transpose=false, double_precision=false) where {S,WN<:Number,BN<:Number}
     if double_precision
@@ -62,32 +69,38 @@ end
 #######################################################################
 
 
-struct ONNXAddConst{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXAddConst{S,VS<:AbstractVector{S},VN} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    c
+    c::VN
 end
 
 onnx_node_to_flux_layer(node::ONNXAddConst) = x -> x .+ node.c
 
+islinear(node::ONNXAddConst) = true
+
 function NNL.construct_layer_add(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXAddConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    b = DOUBLE_PRECISION[] ? Float64.(b) : b
     ONNXAddConst(inputs, outputs, name, b)
 end
 
 function NNL.construct_layer_add(::Type{OnnxType}, name, inputs, outputs, a, b::Type{NNL.DynamicInput})
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXAddConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    a = DOUBLE_PRECISION[] ? Float64.(a) : a
     ONNXAddConst(inputs, outputs, name, a)
 end
 
-struct ONNXAdd{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXAdd{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
 onnx_node_to_flux_layer(node::ONNXAdd) = (x, y) -> x .+ y
+
+islinear(node::ONNXAdd) = true
 
 function NNL.construct_layer_add(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b::Type{NNL.DynamicInput})
     # need to specify that both inputs are dynamic inputs to avoid ambiguity with ONNXAddConst constructors
@@ -102,9 +115,9 @@ end
 ############################################################################
 
 
-struct ONNXSubConst{S,C} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSubConst{S,VS<:AbstractVector{S},C} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
     c::C
     left::Bool  # if variable is on the left side of the subtraction
@@ -112,23 +125,29 @@ end
 
 onnx_node_to_flux_layer(node::ONNXSubConst) = x -> ifelse(node.left, x .- node.c, node.c .- x)
 
+islinear(node::ONNXSubConst) = true
+
 function NNL.construct_layer_sub(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSubConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    b = DOUBLE_PRECISION[] ? Float64.(b) : b
     ONNXSubConst(inputs, outputs, name, b, true)
 end
 
 function NNL.construct_layer_sub(::Type{OnnxType}, name, inputs, outputs, a, b::Type{NNL.DynamicInput})
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSubConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    a = DOUBLE_PRECISION[] ? Float64.(a) : a
     ONNXSubConst(inputs, outputs, name, a, false)
 end
 
-struct ONNXSub{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXSub{S,VS<:AbstractVector{S}} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
 end
 
 onnx_node_to_flux_layer(node::ONNXSub) = (x, y) -> x .- y
+
+islinear(node::ONNXSub) = true
 
 function NNL.construct_layer_sub(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b::Type{NNL.DynamicInput})
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSub node: $name with inputs $(inputs) and outputs $(outputs)")
@@ -141,22 +160,26 @@ end
 ############################################################################
 
 
-struct ONNXMulConst{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXMulConst{S,VS<:AbstractVector{S},C} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    c
+    c::C
 end
 
 onnx_node_to_flux_layer(node::ONNXMulConst) = x -> x .* node.c
 
+islinear(node::ONNXMulConst) = true
+
 function NNL.construct_layer_mul(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSubConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    b = DOUBLE_PRECISION[] ? Float64.(b) : b
     ONNXMulConst(inputs, outputs, name, b)
 end
 
 function NNL.construct_layer_mul(::Type{OnnxType}, name, inputs, outputs, a, b::Type{NNL.DynamicInput})
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXSubConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    a = DOUBLE_PRECISION[] ? Float64.(a) : a
     ONNXMulConst(inputs, outputs, name, a)
 end
 
@@ -165,17 +188,20 @@ end
 ##                      Division by Constant                              ##
 ############################################################################
 
-struct ONNXDivConst{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXDivConst{S,VS<:AbstractVector{S},C} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    c
+    c::C
 end
 
 onnx_node_to_flux_layer(node::ONNXDivConst) = x -> x ./ node.c
 
+islinear(node::ONNXDivConst) = true
+
 function NNL.construct_layer_div(::Type{OnnxType}, name, inputs, outputs, a::Type{NNL.DynamicInput}, b)
     VERBOSE_ONNX[] > 0 && println("Constructing ONNXDivConst node: $name with inputs $(inputs) and outputs $(outputs)")
+    b = DOUBLE_PRECISION[] ? Float64.(b) : b
     ONNXDivConst(inputs, outputs, name, b)
 end
 
@@ -185,14 +211,16 @@ end
 #############################################################################
 
 
-struct ONNXConv{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXConv{S,VS<:AbstractVector{S},C<:Conv} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    conv::Conv
+    conv::C
 end
 
 onnx_node_to_flux_layer(node::ONNXConv) = node.conv
+
+islinear(node::ONNXConv) = true
 
 
 """
@@ -255,14 +283,16 @@ end
 ##################################################################################
 
 
-struct ONNXConvT{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXConvT{S,VS<:AbstractVector{S},C<:ConvTranspose} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    convt::ConvTranspose
+    convt::C
 end
 
 onnx_node_to_flux_layer(node::ONNXConvT) = node.convt
+
+islinear(node::ONNXConvT) = true
 
 
 """
@@ -311,14 +341,16 @@ function NNL.construct_layer_conv_transpose(::Type{OnnxType}, name, inputs, outp
 end
 
 
-struct ONNXAveragePool{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXAveragePool{S,VS<:AbstractVector{S},M<:MeanPool} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    avg::MeanPool
+    avg::M
 end
 
 onnx_node_to_flux_layer(node::ONNXAveragePool) = node.avg
+
+islinear(node::ONNXAveragePool) = true
 
 
 function ONNXAveragePool(inputs, outputs, name, window::NTuple; pad=0, stride=window)
@@ -345,12 +377,12 @@ function NNL.construct_layer_average_pool(::Type{OnnxType}, name, inputs, output
 end
 
 
-struct ONNXDropout{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXDropout{S,VS<:AbstractVector{S},R,M} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    ratio
-    training_mode
+    ratio::R
+    training_mode::M
 end
 
 
@@ -361,14 +393,16 @@ function NNL.construct_layer_dropout(::Type{OnnxType}, name, inputs, outputs, da
 end
 
 
-struct ONNXBatchNorm{S} <: Node{S}
-    inputs::AbstractVector{S}
-    outputs::AbstractVector{S}
+struct ONNXBatchNorm{S,VS<:AbstractVector{S},B<:BatchNorm} <: Node{S}
+    inputs::VS
+    outputs::VS
     name::S
-    batchnorm::BatchNorm
+    batchnorm::B
 end
 
 onnx_node_to_flux_layer(node::ONNXBatchNorm) = node.batchnorm
+
+islinear(node::ONNXBatchNorm) = true
 
 
 function ONNXBatchNorm(inputs, outputs, name, μ, γ, β, σ²; λ=identity, ϵ=1e-5, double_precision=false)
@@ -399,4 +433,86 @@ function NNL.construct_layer_batch_normalization(::Type{OnnxType}, name, inputs,
     @assert X == NNL.DynamicInput
     VERBOSE_ONNX[] > 0 && println("Constructing BatchNormalization node: $name with inputs $(inputs) and outputs $(outputs)")
     return ONNXBatchNorm(inputs, outputs, name, input_mean, scale, B, input_var, ϵ=epsilon, double_precision=DOUBLE_PRECISION[])
+end
+
+
+
+struct ONNXReduceSum{S,VS<:AbstractVector{S},N<:Integer} <: Node{S}
+    inputs::VS
+    outputs::VS
+    name::S
+    axes::AbstractArray{N}
+    keepdims::Bool
+    noop_with_empty_axes::Bool
+end
+
+# TODO: have a factory method that constructs the function once 
+#       and then the returned function doesn't have that many ifs.
+onnx_node_to_flux_layer(node::ONNXReduceSum) = x -> begin
+    if length(node.axes) == 0 && node.noop_with_empty_axes
+        return x 
+    elseif length(node.axes) == 0 && node.keepdims
+        # reduce over all elements
+        # if dims is an array, Julia keeps dim by default
+        return sum(x, dims=1:ndims(x))
+    elseif length(node.axes) == 0
+        # reduce over all elements and don't keep dim
+        return sum(x)
+    else
+        axes = ndims(x) .- node.axes  # NCHW -> WHCN       
+        y = sum(x, dims=axes)
+
+        if !node.keepdims
+            idx = Tuple(i in axes ? 1 : Colon() for i in 1:ndims(x))
+            y = y[idx...]
+        end
+
+        return y
+    end
+end
+
+islinear(node::ONNXReduceSum) = true
+
+function NNL.construct_layer_reducesum(::Type{OnnxType}, name, inputs, outputs, data, axes; keepdims=1, noop_with_empty_axes=0)
+    # TODO: actually axes=[] is a default value, but if I add the default value here, then Julia cannot precompile the method 
+    # as default values are not part of the method signature --> duplicate signature with the below method!
+    @assert all(axes .>= 0) "Only non-negative axes are supported!"
+    return ONNXReduceSum(inputs, outputs, name, axes, (keepdims == 1), (noop_with_empty_axes == 1))
+end
+
+function NNL.construct_layer_reducesum(node::Type{OnnxType}, name, inputs, outputs, data; axes=[], keepdims=1, noop_with_empty_axes=0)
+    # in ONNX 11, axes is a kwarg, not an arg
+    return NNL.construct_layer_reducesum(node, name, inputs, outputs, data, axes, keepdims=keepdims, noop_with_empty_axes=noop_with_empty_axes)
+end
+
+
+############################################################################
+##                              Upsample                                  ##
+############################################################################
+
+
+struct ONNXUpsample{S,VS<:AbstractVector{S},U<:Upsample} <: Node{S}
+    inputs::VS
+    outputs::VS
+    name::S
+    upsampling::U
+end
+
+onnx_node_to_flux_layer(node::ONNXUpsample) = node.upsampling
+
+
+islinear(node::ONNXUpsample) = true
+
+
+function ONNXUpsample(inputs, outputs, name; mode=:nearest, scale=nothing, size=nothing)
+    @assert ~isnothing(scale) || ~isnothing(size) "Either size or scale needs to be set! (constructor of $name)"
+    upsampling = Upsample(mode, scale=scale, size=size)
+    return ONNXUpsample(inputs, outputs, name, upsampling)
+end
+
+function NNL.construct_layer_upsample(::Type{OnnxType}, name, inputs, outputs, data, scales; mode="nearest")
+    @assert data == NNL.DynamicInput "Expected DynamicInput for data, but got $data"
+    # NCHW -> WHCN
+    scales = reverse(tuple(Integer.(scales)...))
+    return ONNXUpsample(inputs, outputs, name, scale=scales)
 end

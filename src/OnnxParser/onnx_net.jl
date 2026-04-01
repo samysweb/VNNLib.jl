@@ -69,14 +69,11 @@ function OnnxNet(nodes, start_nodes::VS, final_nodes::VS, input_shape_dict, outp
     end
 
     # sometimes shape info contains strings like "batch"
-    for (k, v) in input_shape_dict
-        input_shape = map(s -> ifelse(typeof(s) <: Integer, s, 1), v)
-        input_shape_dict[k] = input_shape
-    end
-    for (k, v) in output_shape_dict
-        output_shape = map(s -> ifelse(typeof(s) <: Integer, s, 1), v)
-        output_shape_dict[k] = output_shape
-    end
+    input_shapes = map(v -> map(s -> ifelse(typeof(s) <: Integer, s, 1), v), values(input_shape_dict))
+    input_shape_dict = Dict(keys(input_shape_dict) .=> input_shapes)
+
+    output_shapes = map(v -> map(s -> ifelse(typeof(s) <: Integer, s, 1), v), values(output_shape_dict))
+    output_shape_dict = Dict(keys(output_shape_dict) .=> output_shapes)
 
     OnnxNet(start_nodes, final_nodes, node_dict, output_dict, node_prevs, node_nexts, input_shape_dict, output_shape_dict)
 end
@@ -128,6 +125,8 @@ args:
 - `out_dict`: the dictionary mapping output names to their values
 """
 function collect_inputs(net::OnnxNet{S,N1,N2}, node_name::S, out_dict::Dict{S,AN}) where {S,N1,N2,AN}
+    # TODO: How can we return a good error message (e.g. "node $(node_name) expected input $i, but found only $(keys(out_dict))")
+    #       while also having a type stable list?
     [out_dict[i] for i in net.nodes[node_name].inputs]
 end
 
@@ -171,7 +170,7 @@ returns:
 """
 function compute_all_outputs(net::OnnxNet{S,N1,N2}, x_dict::Dict{S,<:AbstractArray}; verbosity=0) where {S,N1,N2}
     # dictionary mapping output names (not node names!) to their values
-    output_data = Dict{S,AbstractArray}()
+    output_data = Dict{S,AbstractArray}()  # TODO: can we make this type stable?
 
     node_names = collect(keys(net.nodes))
     visit_cnt = Dict(node_names .=> 0)
